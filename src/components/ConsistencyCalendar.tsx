@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useTasks } from '@/context/TaskContext';
-import { format, subDays, subWeeks, subMonths, subYears, eachDayOfInterval, parseISO, getDay, startOfWeek, addDays } from 'date-fns';
+import { format, subWeeks, subMonths, subYears, eachDayOfInterval, parseISO, getDay, startOfWeek } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { getToday, formatDate } from '@/utils/dateUtils';
 import { generateProgressKey } from '@/utils/storageUtils';
@@ -22,6 +22,45 @@ export const ConsistencyCalendar: React.FC = () => {
   const { tasks, dailyProgress } = useTasks();
   const today = getToday();
   const [timeRange, setTimeRange] = useState<TimeRange>('3m');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [cellSize, setCellSize] = useState(12);
+  const [cellGap, setCellGap] = useState(2);
+
+  // Calculate cell size based on container width
+  useEffect(() => {
+    const calculateCellSize = () => {
+      if (!containerRef.current) return;
+      const containerWidth = containerRef.current.offsetWidth;
+      const dayLabelWidth = 28; // Width for day labels
+      const availableWidth = containerWidth - dayLabelWidth - 16; // padding
+      
+      // Calculate number of weeks based on time range
+      let numWeeks: number;
+      switch (timeRange) {
+        case '1w': numWeeks = 2; break;
+        case '1m': numWeeks = 5; break;
+        case '3m': numWeeks = 14; break;
+        case '6m': numWeeks = 27; break;
+        case '1y': numWeeks = 53; break;
+        default: numWeeks = 14;
+      }
+      
+      // Calculate optimal cell size to fit all weeks
+      const minGap = 2;
+      const maxCellSize = 16;
+      const minCellSize = 8;
+      
+      const optimalCellSize = Math.floor((availableWidth - (numWeeks - 1) * minGap) / numWeeks);
+      const newCellSize = Math.min(maxCellSize, Math.max(minCellSize, optimalCellSize));
+      
+      setCellSize(newCellSize);
+      setCellGap(newCellSize >= 12 ? 2 : 1);
+    };
+
+    calculateCellSize();
+    window.addEventListener('resize', calculateCellSize);
+    return () => window.removeEventListener('resize', calculateCellSize);
+  }, [timeRange]);
 
   const { calendarData, weeks, monthLabels } = useMemo(() => {
     const endDate = parseISO(today);
@@ -128,7 +167,7 @@ export const ConsistencyCalendar: React.FC = () => {
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
+    <div ref={containerRef} className="rounded-xl border border-border bg-card p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h3 className="text-lg font-semibold">Consistency</h3>
         <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
@@ -145,73 +184,83 @@ export const ConsistencyCalendar: React.FC = () => {
         </Select>
       </div>
 
-      <div className="overflow-x-auto">
-        <div className="min-w-fit">
-          {/* Month labels */}
-          <div className="flex mb-1 ml-8 text-xs text-muted-foreground">
-            {monthLabels.map((label, idx) => (
-              <div
-                key={idx}
-                style={{
-                  marginLeft: idx === 0 ? `${label.colStart * 14}px` : undefined,
-                  width: idx < monthLabels.length - 1 
-                    ? `${(monthLabels[idx + 1].colStart - label.colStart) * 14}px` 
-                    : 'auto',
-                }}
-                className="flex-shrink-0"
+      <div className="w-full">
+        {/* Month labels */}
+        <div 
+          className="flex mb-1 text-xs text-muted-foreground"
+          style={{ marginLeft: `${28 + cellGap}px` }}
+        >
+          {monthLabels.map((label, idx) => (
+            <div
+              key={idx}
+              style={{
+                marginLeft: idx === 0 ? `${label.colStart * (cellSize + cellGap)}px` : undefined,
+                width: idx < monthLabels.length - 1 
+                  ? `${(monthLabels[idx + 1].colStart - label.colStart) * (cellSize + cellGap)}px` 
+                  : 'auto',
+              }}
+              className="flex-shrink-0 truncate"
+            >
+              {label.month}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar grid */}
+        <div className="flex" style={{ gap: `${cellGap}px` }}>
+          {/* Day labels */}
+          <div className="flex flex-col text-xs text-muted-foreground" style={{ gap: `${cellGap}px`, width: '28px' }}>
+            {weekDays.map((day, idx) => (
+              <div 
+                key={day} 
+                className="flex items-center justify-end pr-1" 
+                style={{ height: `${cellSize}px`, fontSize: cellSize <= 10 ? '9px' : '11px' }}
               >
-                {label.month}
+                {idx % 2 === 1 ? day.slice(0, cellSize <= 10 ? 1 : 3) : ''}
               </div>
             ))}
           </div>
 
-          {/* Calendar grid */}
-          <div className="flex gap-[2px]">
-            {/* Day labels */}
-            <div className="flex flex-col gap-[2px] text-xs text-muted-foreground pr-1">
-              {weekDays.map((day, idx) => (
-                <div key={day} className="h-3 flex items-center justify-end" style={{ height: '12px' }}>
-                  {idx % 2 === 1 ? day : ''}
+          {/* Contribution squares */}
+          <TooltipProvider delayDuration={100}>
+            <div className="flex flex-1" style={{ gap: `${cellGap}px` }}>
+              {weeks.map((week, weekIdx) => (
+                <div key={weekIdx} className="flex flex-col" style={{ gap: `${cellGap}px` }}>
+                  {/* Fill empty days at start of first week */}
+                  {weekIdx === 0 &&
+                    Array.from({ length: 7 - week.length }).map((_, i) => (
+                      <div 
+                        key={`empty-${i}`} 
+                        className="rounded-sm" 
+                        style={{ width: `${cellSize}px`, height: `${cellSize}px` }}
+                      />
+                    ))}
+                  {week.map((day) => (
+                    <Tooltip key={day.dateStr}>
+                      <TooltipTrigger asChild>
+                        <div
+                          className={cn(
+                            'rounded-sm transition-colors cursor-default',
+                            getLevelClass(day.level),
+                            day.isToday && 'ring-1 ring-primary ring-offset-1 ring-offset-card'
+                          )}
+                          style={{ width: `${cellSize}px`, height: `${cellSize}px` }}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        <p className="font-medium">{format(day.date, 'MMM d, yyyy')}</p>
+                        <p className="text-muted-foreground">
+                          {day.total === 0
+                            ? 'No tasks'
+                            : `${day.count}/${day.total} completed`}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
                 </div>
               ))}
             </div>
-
-            {/* Contribution squares */}
-            <TooltipProvider delayDuration={100}>
-              <div className="flex gap-[2px]">
-                {weeks.map((week, weekIdx) => (
-                  <div key={weekIdx} className="flex flex-col gap-[2px]">
-                    {/* Fill empty days at start of first week */}
-                    {weekIdx === 0 &&
-                      Array.from({ length: 7 - week.length }).map((_, i) => (
-                        <div key={`empty-${i}`} className="w-3 h-3 rounded-sm" />
-                      ))}
-                    {week.map((day) => (
-                      <Tooltip key={day.dateStr}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className={cn(
-                              'w-3 h-3 rounded-sm transition-colors cursor-default',
-                              getLevelClass(day.level),
-                              day.isToday && 'ring-1 ring-primary ring-offset-1 ring-offset-card'
-                            )}
-                          />
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs">
-                          <p className="font-medium">{format(day.date, 'MMM d, yyyy')}</p>
-                          <p className="text-muted-foreground">
-                            {day.total === 0
-                              ? 'No tasks'
-                              : `${day.count}/${day.total} completed`}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </TooltipProvider>
-          </div>
+          </TooltipProvider>
         </div>
       </div>
 

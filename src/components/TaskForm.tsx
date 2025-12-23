@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Task, TaskCategory, CATEGORY_LABELS, DayPattern, Weekday, DAY_PATTERN_LABELS, WEEKDAY_LABELS } from '@/types/task';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { getToday, isValidDateRange } from '@/utils/dateUtils';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { getToday, isValidDateRange, formatDate } from '@/utils/dateUtils';
 import { useTasks } from '@/context/TaskContext';
 import { toast } from 'sonner';
-import { X, Calendar } from 'lucide-react';
+import { X, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { format, parseISO } from 'date-fns';
+import { Input } from '@/components/ui/input';
 
 interface TaskFormProps {
   open: boolean;
@@ -203,23 +206,58 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
           {/* Date Range */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
-              <Input
-                id="startDate"
-                type="date"
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-              />
+              <Label>Start Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.startDate ? format(parseISO(formData.startDate), "PPP") : <span>Pick date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.startDate ? parseISO(formData.startDate) : undefined}
+                    onSelect={(date) => date && setFormData({ ...formData, startDate: formatDate(date) })}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
-              <Input
-                id="endDate"
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className={errors.endDate ? 'border-destructive' : ''}
-              />
+              <Label>End Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !formData.endDate && "text-muted-foreground",
+                      errors.endDate && "border-destructive"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.endDate ? format(parseISO(formData.endDate), "PPP") : <span>Pick date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={formData.endDate ? parseISO(formData.endDate) : undefined}
+                    onSelect={(date) => date && setFormData({ ...formData, endDate: formatDate(date) })}
+                    disabled={(date) => formData.startDate ? date < parseISO(formData.startDate) : false}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
               {errors.endDate && <p className="text-xs text-destructive">{errors.endDate}</p>}
             </div>
           </div>
@@ -227,7 +265,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
           {/* Day Pattern */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
+              <CalendarIcon className="h-4 w-4" />
               Repeat Pattern
             </Label>
             <Select
