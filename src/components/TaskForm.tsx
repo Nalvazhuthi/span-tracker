@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Task, TaskCategory, CATEGORY_LABELS } from '@/types/task';
+import { Task, TaskCategory, CATEGORY_LABELS, DayPattern, Weekday, DAY_PATTERN_LABELS, WEEKDAY_LABELS } from '@/types/task';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { getToday, isValidDateRange } from '@/utils/dateUtils';
 import { useTasks } from '@/context/TaskContext';
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
+import { X, Calendar } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface TaskFormProps {
   open: boolean;
@@ -34,6 +35,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
     startDate: today,
     endDate: today,
     priority: 'medium' as 'low' | 'medium' | 'high',
+    dayPattern: 'daily' as DayPattern,
+    customDays: [] as Weekday[],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -47,6 +50,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
         startDate: editTask.startDate,
         endDate: editTask.endDate,
         priority: editTask.priority || 'medium',
+        dayPattern: editTask.dayPattern || 'daily',
+        customDays: editTask.customDays || [],
       });
     } else {
       setFormData({
@@ -56,6 +61,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
         startDate: today,
         endDate: today,
         priority: 'medium',
+        dayPattern: 'daily',
+        customDays: [],
       });
     }
     setErrors({});
@@ -76,6 +83,10 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
       newErrors.endDate = 'End date must be after or equal to start date';
     }
 
+    if (formData.dayPattern === 'custom' && formData.customDays.length === 0) {
+      newErrors.customDays = 'Select at least one day';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -92,6 +103,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
       startDate: formData.startDate,
       endDate: formData.endDate,
       priority: formData.priority,
+      dayPattern: formData.dayPattern,
+      customDays: formData.dayPattern === 'custom' ? formData.customDays : undefined,
     };
 
     if (editTask) {
@@ -105,9 +118,20 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
     onOpenChange(false);
   };
 
+  const toggleCustomDay = (day: Weekday) => {
+    setFormData((prev) => ({
+      ...prev,
+      customDays: prev.customDays.includes(day)
+        ? prev.customDays.filter((d) => d !== day)
+        : [...prev.customDays, day].sort((a, b) => a - b),
+    }));
+  };
+
+  const allWeekdays: Weekday[] = [0, 1, 2, 3, 4, 5, 6];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             {editTask ? 'Edit Task' : 'Create New Task'}
@@ -199,6 +223,56 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
               {errors.endDate && <p className="text-xs text-destructive">{errors.endDate}</p>}
             </div>
           </div>
+
+          {/* Day Pattern */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Repeat Pattern
+            </Label>
+            <Select
+              value={formData.dayPattern}
+              onValueChange={(value) => setFormData({ ...formData, dayPattern: value as DayPattern })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(DAY_PATTERN_LABELS).map(([key, label]) => (
+                  <SelectItem key={key} value={key}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Custom Days Selection */}
+          {formData.dayPattern === 'custom' && (
+            <div className="space-y-2">
+              <Label>Select Days</Label>
+              <div className="flex flex-wrap gap-2">
+                {allWeekdays.map((day) => (
+                  <button
+                    key={day}
+                    type="button"
+                    onClick={() => toggleCustomDay(day)}
+                    className={cn(
+                      'px-3 py-2 rounded-lg text-sm font-medium transition-all border',
+                      formData.customDays.includes(day)
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-secondary text-secondary-foreground border-border hover:border-primary/50'
+                    )}
+                  >
+                    {WEEKDAY_LABELS[day]}
+                  </button>
+                ))}
+              </div>
+              {errors.customDays && (
+                <p className="text-xs text-destructive">{errors.customDays}</p>
+              )}
+            </div>
+          )}
 
           {/* Priority */}
           <div className="space-y-2">

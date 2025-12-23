@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { Task, DailyProgress, AppData, TaskStatus } from '@/types/task';
 import { loadAppData, saveAppData, generateProgressKey, getDefaultAppData } from '@/utils/storageUtils';
-import { getToday, isDateInRange, getDaysInRange } from '@/utils/dateUtils';
+import { getToday, getDaysInRange } from '@/utils/dateUtils';
+import { isTaskActiveOnDate, getActiveTaskDays } from '@/utils/taskDayUtils';
 
 interface TaskState {
   tasks: Task[];
@@ -153,9 +154,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getTasksForDate = useCallback(
     (date: string): Task[] => {
-      return state.tasks.filter((task) =>
-        isDateInRange(date, task.startDate, task.endDate)
-      );
+      return state.tasks.filter((task) => isTaskActiveOnDate(task, date));
     },
     [state.tasks]
   );
@@ -176,8 +175,8 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const days = getDaysInRange(task.startDate, task.endDate);
       const today = getToday();
       
-      // Only count days up to today
-      const relevantDays = days.filter((d) => d <= today);
+      // Only count days up to today that match the day pattern
+      const relevantDays = getActiveTaskDays(task, days).filter((d) => d <= today);
       const total = relevantDays.length;
 
       const completed = relevantDays.filter((date) => {
