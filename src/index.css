@@ -2,9 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 @layer base {
+  /* Theme: Ocean Light (default) */
   :root {
     --background: 220 20% 97%;
     --foreground: 220 25% 10%;
@@ -57,6 +58,12 @@
     --priority-medium: 38 92% 50%;
     --priority-low: 220 10% 50%;
 
+    /* GitHub-style contribution colors */
+    --contribution-level-1: 152 60% 80%;
+    --contribution-level-2: 152 65% 60%;
+    --contribution-level-3: 152 70% 45%;
+    --contribution-level-4: 152 75% 30%;
+
     /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(220 70% 50%), hsl(250 70% 55%));
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 20% 98%));
@@ -67,8 +74,60 @@
     --shadow-md: 0 4px 6px -1px hsl(220 25% 10% / 0.07), 0 2px 4px -2px hsl(220 25% 10% / 0.05);
     --shadow-lg: 0 10px 15px -3px hsl(220 25% 10% / 0.08), 0 4px 6px -4px hsl(220 25% 10% / 0.05);
     --shadow-glow: 0 0 20px hsl(220 70% 50% / 0.15);
+
+    /* Font */
+    --font-heading: 'Space Grotesk', system-ui, sans-serif;
+    --font-body: 'Space Grotesk', system-ui, sans-serif;
   }
 
+  /* Theme: Forest Light */
+  .theme-forest-light {
+    --background: 140 20% 97%;
+    --foreground: 140 25% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 140 25% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 140 25% 10%;
+
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 140 15% 92%;
+    --secondary-foreground: 140 25% 20%;
+
+    --muted: 140 15% 94%;
+    --muted-foreground: 140 10% 45%;
+
+    --accent: 142 70% 95%;
+    --accent-foreground: 142 70% 35%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 140 15% 88%;
+    --input: 140 15% 88%;
+    --ring: 142 71% 45%;
+
+    /* Contribution colors - forest green */
+    --contribution-level-1: 142 60% 85%;
+    --contribution-level-2: 142 65% 65%;
+    --contribution-level-3: 142 70% 50%;
+    --contribution-level-4: 142 75% 35%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(142 71% 45%), hsl(160 70% 40%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(140 20% 98%));
+    --gradient-accent: linear-gradient(135deg, hsl(142 70% 95%), hsl(160 70% 95%));
+
+    --shadow-glow: 0 0 20px hsl(142 71% 45% / 0.15);
+
+    --font-heading: 'Outfit', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
+
+  /* Theme: Ocean Dark (default dark) */
   .dark {
     --background: 224 25% 8%;
     --foreground: 220 15% 95%;
@@ -108,6 +167,12 @@
     --status-pending: 220 10% 55%;
     --status-pending-bg: 220 10% 15%;
 
+    /* Contribution colors - dark mode */
+    --contribution-level-1: 152 50% 20%;
+    --contribution-level-2: 152 55% 30%;
+    --contribution-level-3: 152 60% 40%;
+    --contribution-level-4: 152 65% 50%;
+
     /* Gradients - dark mode */
     --gradient-primary: linear-gradient(135deg, hsl(220 70% 55%), hsl(250 70% 60%));
     --gradient-card: linear-gradient(180deg, hsl(224 25% 12%), hsl(224 25% 10%));
@@ -119,6 +184,63 @@
     --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.15);
     --shadow-glow: 0 0 25px hsl(220 70% 55% / 0.2);
   }
+
+  /* Theme: Midnight Purple */
+  .theme-midnight-purple {
+    --background: 270 25% 8%;
+    --foreground: 270 15% 95%;
+
+    --card: 270 25% 11%;
+    --card-foreground: 270 15% 95%;
+
+    --popover: 270 25% 11%;
+    --popover-foreground: 270 15% 95%;
+
+    --primary: 270 70% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 20% 16%;
+    --secondary-foreground: 270 15% 90%;
+
+    --muted: 270 20% 14%;
+    --muted-foreground: 270 10% 55%;
+
+    --accent: 270 25% 18%;
+    --accent-foreground: 270 70% 75%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 270 20% 18%;
+    --input: 270 20% 18%;
+    --ring: 270 70% 60%;
+
+    /* Task status colors - purple theme */
+    --status-done: 152 69% 50%;
+    --status-done-bg: 152 50% 15%;
+    --status-skipped: 38 92% 55%;
+    --status-skipped-bg: 38 70% 15%;
+    --status-partial: 270 91% 65%;
+    --status-partial-bg: 270 70% 15%;
+    --status-pending: 270 10% 55%;
+    --status-pending-bg: 270 10% 15%;
+
+    /* Contribution colors - purple */
+    --contribution-level-1: 270 50% 25%;
+    --contribution-level-2: 270 55% 35%;
+    --contribution-level-3: 270 60% 50%;
+    --contribution-level-4: 270 65% 65%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(270 70% 60%), hsl(300 70% 55%));
+    --gradient-card: linear-gradient(180deg, hsl(270 25% 12%), hsl(270 25% 10%));
+    --gradient-accent: linear-gradient(135deg, hsl(270 25% 18%), hsl(300 25% 18%));
+
+    --shadow-glow: 0 0 25px hsl(270 70% 60% / 0.25);
+
+    --font-heading: 'Outfit', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
 }
 
 @layer base {
@@ -128,11 +250,11 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: var(--font-body);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: var(--font-heading);
     @apply font-semibold tracking-tight;
   }
 
