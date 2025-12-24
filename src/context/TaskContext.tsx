@@ -94,7 +94,7 @@ const taskReducer = (state: TaskState, action: TaskAction): TaskState => {
   }
 };
 
-import { generateProgressKey } from '@/utils/storageUtils';
+import { generateProgressKey, loadAppData, saveAppData } from '@/utils/storageUtils';
 import { getToday, getDaysInRange } from '@/utils/dateUtils';
 import { isTaskActiveOnDate, getActiveTaskDays } from '@/utils/taskDayUtils';
 
@@ -126,6 +126,27 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     fetchCloudData();
   }, [user]);
+
+  // Load local data on mount so anonymous users keep their tasks
+  useEffect(() => {
+    try {
+      const local = loadAppData();
+      dispatch({ type: 'LOAD_DATA', payload: local });
+    } catch (error) {
+      console.error('Failed to load local data:', error);
+    }
+  }, []);
+
+  // Persist local changes to storage
+  useEffect(() => {
+    try {
+      if (!state.isLoading) {
+        saveAppData({ tasks: state.tasks, dailyProgress: state.dailyProgress, version: '1.0.0' });
+      }
+    } catch (error) {
+      console.error('Failed to save app data:', error);
+    }
+  }, [state.tasks, state.dailyProgress, state.isLoading]);
 
   const addTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
@@ -183,7 +204,11 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const getTasksForDate = useCallback(
     (date: string): Task[] => {
-      return state.tasks.filter((task) => isTaskActiveOnDate(task, date));
+      // Filter out paused tasks unless we are editing/viewing in settings (viewing all)
+      // The requirement says "Do not appear in daily tasks"
+      return state.tasks
+        .filter((task) => !task.isPaused)
+        .filter((task) => isTaskActiveOnDate(task, date));
     },
     [state.tasks]
   );
@@ -201,6 +226,10 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const task = state.tasks.find((t) => t.id === taskId);
       if (!task) return { completed: 0, total: 0, percentage: 0 };
 
+      // Paused tasks shouldn't affect analytics, so if paused, maybe return 0/0?
+      // Requirement: "Do not affect streaks or analytics"
+      if (task.isPaused) return { completed: 0, total: 0, percentage: 0 };
+
       const days = getDaysInRange(task.startDate, task.endDate);
 
       // Count all days in range that match the day pattern
@@ -210,7 +239,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const completed = relevantDays.filter((date) => {
         const key = generateProgressKey(taskId, date);
         const progress = state.dailyProgress[key];
-        return progress?.status === 'done';
+        return progress?.status === 'done' || progress?.status === 'saved-the-day';
       }).length;
 
       const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;

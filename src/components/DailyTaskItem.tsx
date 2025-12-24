@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Task, TaskStatus, CATEGORY_LABELS, TaskCategory } from '@/types/task';
 import { useTasks } from '@/context/TaskContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { Check, X, Circle, Clock, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
+import { Check, X, Circle, Clock, ChevronDown, ChevronUp, MessageSquare, ShieldCheck } from 'lucide-react';
+import { subDays, format } from 'date-fns';
 
 interface DailyTaskItemProps {
   task: Task;
@@ -13,10 +14,11 @@ interface DailyTaskItemProps {
 }
 
 const statusConfig: Record<TaskStatus, { icon: React.ElementType; label: string; bgClass: string; textClass: string }> = {
-  done: { icon: Check, label: 'Done', bgClass: 'bg-status-done-bg', textClass: 'text-status-done' },
-  skipped: { icon: X, label: 'Skipped', bgClass: 'bg-status-skipped-bg', textClass: 'text-status-skipped' },
-  partial: { icon: Circle, label: 'Partial', bgClass: 'bg-status-partial-bg', textClass: 'text-status-partial' },
-  pending: { icon: Clock, label: 'Pending', bgClass: 'bg-status-pending-bg', textClass: 'text-status-pending' },
+  done: { icon: Check, label: 'Done', bgClass: 'bg-green-100 dark:bg-green-900/30', textClass: 'text-green-600 dark:text-green-400' },
+  skipped: { icon: X, label: 'Skipped', bgClass: 'bg-red-100 dark:bg-red-900/30', textClass: 'text-red-600 dark:text-red-400' },
+  partial: { icon: Circle, label: 'Partial', bgClass: 'bg-yellow-100 dark:bg-yellow-900/30', textClass: 'text-yellow-600 dark:text-yellow-400' },
+  pending: { icon: Clock, label: 'Pending', bgClass: 'bg-secondary', textClass: 'text-muted-foreground' },
+  'saved-the-day': { icon: ShieldCheck, label: 'Saved the Day', bgClass: 'bg-blue-100 dark:bg-blue-900/30', textClass: 'text-blue-600 dark:text-blue-400' },
 };
 
 const categoryColors: Record<TaskCategory, string> = {
@@ -33,6 +35,19 @@ export const DailyTaskItem: React.FC<DailyTaskItemProps> = ({ task, date }) => {
   const [expanded, setExpanded] = useState(false);
   const [timeSpent, setTimeSpent] = useState(progress?.timeSpent?.toString() || '');
   const [notes, setNotes] = useState(progress?.notes || '');
+
+  // Auto Carry Forward Logic
+  useEffect(() => {
+    if (task.autoCarryForward && !progress && !timeSpent && !notes) {
+      // Check yesterday
+      const yesterday = format(subDays(new Date(date), 1), 'yyyy-MM-dd');
+      const prevProgress = getProgressForTask(task.id, yesterday);
+      if (prevProgress) {
+        if (prevProgress.timeSpent) setTimeSpent(prevProgress.timeSpent.toString());
+        if (prevProgress.notes) setNotes(prevProgress.notes);
+      }
+    }
+  }, [task.autoCarryForward, task.id, date, progress, getProgressForTask]);
 
   const handleStatusChange = (newStatus: TaskStatus) => {
     updateProgress(task.id, date, newStatus, timeSpent ? parseInt(timeSpent) : undefined, notes || undefined);
@@ -56,7 +71,7 @@ export const DailyTaskItem: React.FC<DailyTaskItemProps> = ({ task, date }) => {
       className={cn(
         'rounded-xl border border-border bg-card p-4 transition-all duration-200',
         'hover:shadow-md',
-        currentStatus === 'done' && 'border-status-done/30 bg-status-done-bg/30'
+        (currentStatus === 'done' || currentStatus === 'saved-the-day') && 'border-status-done/30 bg-status-done-bg/30'
       )}
     >
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
@@ -75,7 +90,7 @@ export const DailyTaskItem: React.FC<DailyTaskItemProps> = ({ task, date }) => {
           {/* Task Name */}
           <h3 className={cn(
             'font-semibold text-foreground transition-all text-sm sm:text-base',
-            currentStatus === 'done' && 'line-through opacity-60'
+            (currentStatus === 'done' || currentStatus === 'saved-the-day') && 'line-through opacity-60'
           )}>
             {task.name}
           </h3>
@@ -93,7 +108,7 @@ export const DailyTaskItem: React.FC<DailyTaskItemProps> = ({ task, date }) => {
 
         {/* Status Actions */}
         <div className="flex items-center gap-1 shrink-0">
-          {(['done', 'partial', 'skipped'] as TaskStatus[]).map((status) => {
+          {(['done', 'saved-the-day', 'partial', 'skipped'] as TaskStatus[]).map((status) => {
             const config = statusConfig[status];
             const Icon = config.icon;
             const isActive = currentStatus === status;

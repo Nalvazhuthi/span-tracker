@@ -16,6 +16,8 @@ interface CloudTask {
   custom_days: number[] | null;
   color: string | null;
   priority: string | null;
+  is_paused: boolean | null;
+  auto_carry_forward: boolean | null;
   created_at: string;
   updated_at: string;
 }
@@ -45,6 +47,8 @@ const localToCloudTask = (task: Task, userId: string): Omit<CloudTask, 'created_
   custom_days: task.customDays || [],
   color: task.color || null,
   priority: task.priority || 'medium',
+  is_paused: task.isPaused || false,
+  auto_carry_forward: task.autoCarryForward || false,
 });
 
 // Convert cloud task to local format
@@ -59,6 +63,8 @@ const cloudToLocalTask = (task: CloudTask): Task => ({
   customDays: (task.custom_days as Task['customDays']) || undefined,
   color: task.color || undefined,
   priority: (task.priority as Task['priority']) || undefined,
+  isPaused: task.is_paused || false,
+  autoCarryForward: task.auto_carry_forward || false,
   createdAt: task.created_at,
   updatedAt: task.updated_at,
 });
@@ -98,7 +104,7 @@ export const syncService = {
       .from('tasks')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', userId);
-    
+
     return (count || 0) > 0;
   },
 
@@ -131,7 +137,7 @@ export const syncService = {
 
     const localTasks = (tasks || []).map(cloudToLocalTask);
     const dailyProgress: Record<string, DailyProgress> = {};
-    
+
     (progress || []).forEach((p) => {
       const key = generateProgressKey(p.task_id, p.date);
       dailyProgress[key] = cloudToLocalProgress(p);
@@ -147,14 +153,14 @@ export const syncService = {
   // Upload local data to cloud
   uploadLocalToCloud: async (userId: string): Promise<void> => {
     const localData = loadAppData();
-    
+
     // Upload tasks
     for (const task of localData.tasks) {
       const cloudTask = localToCloudTask(task, userId);
       const { error } = await supabase
         .from('tasks')
         .upsert(cloudTask, { onConflict: 'id' });
-      
+
       if (error) {
         console.error('Error uploading task:', error);
         throw error;
@@ -167,7 +173,7 @@ export const syncService = {
       const { error } = await supabase
         .from('daily_progress')
         .upsert(cloudProgress, { onConflict: 'task_id,date' });
-      
+
       if (error) {
         console.error('Error uploading progress:', error);
         throw error;
@@ -188,7 +194,7 @@ export const syncService = {
     const { error } = await supabase
       .from('tasks')
       .upsert(cloudTask, { onConflict: 'id' });
-    
+
     if (error) {
       console.error('Error syncing task:', error);
       throw error;
@@ -201,7 +207,7 @@ export const syncService = {
       .from('tasks')
       .delete()
       .eq('id', taskId);
-    
+
     if (error) {
       console.error('Error deleting task from cloud:', error);
       throw error;
@@ -214,7 +220,7 @@ export const syncService = {
     const { error } = await supabase
       .from('daily_progress')
       .upsert(cloudProgress, { onConflict: 'task_id,date' });
-    
+
     if (error) {
       console.error('Error syncing progress:', error);
       throw error;

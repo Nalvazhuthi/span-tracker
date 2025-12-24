@@ -10,13 +10,12 @@ import { SettingsProvider } from "@/context/SettingsContext";
 import Index from "./pages/Index";
 import Tasks from "./pages/Tasks";
 import Analytics from "./pages/Analytics";
+import WeeklyReview from "./pages/WeeklyReview";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
-
-
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -46,6 +45,7 @@ const App = () => (
                   <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                   <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
                   <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+                  <Route path="/weekly-review" element={<ProtectedRoute><WeeklyReview /></ProtectedRoute>} />
                   <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="*" element={<NotFound />} />

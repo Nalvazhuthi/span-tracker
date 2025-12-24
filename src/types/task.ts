@@ -1,4 +1,4 @@
-export type TaskStatus = 'done' | 'skipped' | 'partial' | 'pending';
+export type TaskStatus = 'done' | 'skipped' | 'partial' | 'pending' | 'saved-the-day';
 
 export type TaskCategory = 'digital-twin' | 'hacking' | 'math' | 'custom';
 
@@ -17,6 +17,8 @@ export interface Task {
   customDays?: Weekday[]; // Only used when dayPattern is 'custom'
   color?: string;
   priority?: 'low' | 'medium' | 'high';
+  isPaused?: boolean;
+  autoCarryForward?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -54,6 +56,7 @@ export const STATUS_LABELS: Record<TaskStatus, string> = {
   skipped: 'Skipped',
   partial: 'Partial',
   pending: 'Pending',
+  'saved-the-day': 'Saved the Day',
 };
 
 export const DAY_PATTERN_LABELS: Record<DayPattern, string> = {

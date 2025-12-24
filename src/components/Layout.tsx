@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { CalendarDays, ListTodo, BarChart3, Settings, Sparkles } from 'lucide-react';
+import { CalendarDays, ListTodo, BarChart3, Settings, Sparkles, ClipboardCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserMenu } from './UserMenu';
 
@@ -8,6 +8,7 @@ const navItems = [
   { path: '/', label: 'Today', icon: CalendarDays },
   { path: '/tasks', label: 'Tasks', icon: ListTodo },
   { path: '/analytics', label: 'Progress', icon: BarChart3 },
+  { path: '/weekly-review', label: 'Review', icon: ClipboardCheck },
   { path: '/settings', label: 'Settings', icon: Settings },
 ];
 

@@ -13,6 +13,7 @@ import { X, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 
 interface TaskFormProps {
   open: boolean;
@@ -40,9 +41,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
     priority: 'medium' as 'low' | 'medium' | 'high',
     dayPattern: 'daily' as DayPattern,
     customDays: [] as Weekday[],
+    isPaused: false,
+    autoCarryForward: false,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isStartDateOpen, setIsStartDateOpen] = useState(false);
+  const [isEndDateOpen, setIsEndDateOpen] = useState(false);
 
   useEffect(() => {
     if (editTask) {
@@ -55,6 +60,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
         priority: editTask.priority || 'medium',
         dayPattern: editTask.dayPattern || 'daily',
         customDays: editTask.customDays || [],
+        isPaused: editTask.isPaused || false,
+        autoCarryForward: editTask.autoCarryForward || false,
       });
     } else {
       setFormData({
@@ -66,6 +73,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
         priority: 'medium',
         dayPattern: 'daily',
         customDays: [],
+        isPaused: false,
+        autoCarryForward: false,
       });
     }
     setErrors({});
@@ -108,6 +117,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
       priority: formData.priority,
       dayPattern: formData.dayPattern,
       customDays: formData.dayPattern === 'custom' ? formData.customDays : undefined,
+      isPaused: formData.isPaused,
+      autoCarryForward: formData.autoCarryForward,
     };
 
     if (editTask) {
@@ -207,7 +218,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Start Date</Label>
-              <Popover>
+              <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -224,7 +235,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
                   <Calendar
                     mode="single"
                     selected={formData.startDate ? parseISO(formData.startDate) : undefined}
-                    onSelect={(date) => date && setFormData({ ...formData, startDate: formatDate(date) })}
+                    onSelect={(date) => {
+                      if (date) {
+                        setFormData({ ...formData, startDate: formatDate(date) });
+                        setIsStartDateOpen(false);
+                      }
+                    }}
                     initialFocus
                     className="p-3 pointer-events-auto"
                   />
@@ -233,7 +249,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
             </div>
             <div className="space-y-2">
               <Label>End Date</Label>
-              <Popover>
+              <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -251,7 +267,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
                   <Calendar
                     mode="single"
                     selected={formData.endDate ? parseISO(formData.endDate) : undefined}
-                    onSelect={(date) => date && setFormData({ ...formData, endDate: formatDate(date) })}
+                    onSelect={(date) => {
+                      if (date) {
+                        setFormData({ ...formData, endDate: formatDate(date) });
+                        setIsEndDateOpen(false);
+                      }
+                    }}
                     disabled={(date) => formData.startDate ? date < parseISO(formData.startDate) : false}
                     initialFocus
                     className="p-3 pointer-events-auto"
@@ -345,6 +366,38 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
             </Select>
           </div>
 
+          {/* Advanced Settings */}
+          <div className="space-y-4 pt-2 border-t">
+            <h4 className="text-sm font-medium text-muted-foreground">Advanced Settings</h4>
+
+            <div className="flex items-center justify-between space-x-2">
+              <Label htmlFor="auto-carry-forward" className="flex flex-col space-y-1">
+                <span>Auto Carry Forward</span>
+                <span className="font-normal text-xs text-muted-foreground">
+                  Copy notes and time from previous entry
+                </span>
+              </Label>
+              <Switch
+                id="auto-carry-forward"
+                checked={formData.autoCarryForward}
+                onCheckedChange={(checked) => setFormData({ ...formData, autoCarryForward: checked })}
+              />
+            </div>
+
+            <div className="flex items-center justify-between space-x-2">
+              <Label htmlFor="is-paused" className="flex flex-col space-y-1">
+                <span>Pause Task</span>
+                <span className="font-normal text-xs text-muted-foreground">
+                  Hide checks and pause streaks
+                </span>
+              </Label>
+              <Switch
+                id="is-paused"
+                checked={formData.isPaused}
+                onCheckedChange={(checked) => setFormData({ ...formData, isPaused: checked })}
+              />
+            </div>
+          </div>
           {/* Actions */}
           <div className="flex justify-end gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
