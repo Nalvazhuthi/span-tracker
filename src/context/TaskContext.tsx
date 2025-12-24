@@ -1,11 +1,8 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, useState } from 'react';
 import { Task, DailyProgress, AppData, TaskStatus } from '@/types/task';
-import { loadAppData, saveAppData, generateProgressKey, getDefaultAppData } from '@/utils/storageUtils';
-import { getToday, getDaysInRange } from '@/utils/dateUtils';
-import { isTaskActiveOnDate, getActiveTaskDays } from '@/utils/taskDayUtils';
 import { useAuth } from './AuthContext';
-import { syncService, MergeStrategy } from '@/services/syncService';
-import { DataMigrationDialog } from '@/components/DataMigrationDialog';
+import { syncService } from '@/services/syncService';
+import { generateId } from '@/utils/idUtils';
 
 interface TaskState {
   tasks: Task[];
@@ -97,6 +94,10 @@ const taskReducer = (state: TaskState, action: TaskAction): TaskState => {
   }
 };
 
+import { generateProgressKey } from '@/utils/storageUtils';
+import { getToday, getDaysInRange } from '@/utils/dateUtils';
+import { isTaskActiveOnDate, getActiveTaskDays } from '@/utils/taskDayUtils';
+
 export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [state, dispatch] = useReducer(taskReducer, {
@@ -105,110 +106,37 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: true,
   });
 
-  const [showMigrationDialog, setShowMigrationDialog] = useState(false);
-  const [migrationInfo, setMigrationInfo] = useState({
-    hasLocalData: false,
-    hasCloudData: false,
-    localTaskCount: 0,
-    cloudTaskCount: 0,
-  });
-  const [syncChecked, setSyncChecked] = useState(false);
-
-  // Load local data on mount
+  // Load cloud data when user changes
   useEffect(() => {
-    const data = loadAppData();
-    dispatch({ type: 'LOAD_DATA', payload: data });
-  }, []);
+    const fetchCloudData = async () => {
+      if (!user) {
+        dispatch({ type: 'CLEAR_DATA' });
+        return;
+      }
 
-  // Check for sync when user logs in
-  useEffect(() => {
-    const checkSync = async () => {
-      if (!user || syncChecked) return;
-      
-      setSyncChecked(true);
-      
-      const hasLocal = syncService.hasLocalData();
-      const hasCloud = await syncService.hasCloudData(user.id);
-      
-      if (hasLocal || hasCloud) {
-        const localData = syncService.getLocalData();
-        let cloudTaskCount = 0;
-        
-        if (hasCloud) {
-          const cloudData = await syncService.getCloudData(user.id);
-          cloudTaskCount = cloudData.tasks.length;
-          
-          // If only cloud data, auto-sync
-          if (!hasLocal) {
-            dispatch({ type: 'LOAD_DATA', payload: cloudData });
-            saveAppData(cloudData);
-            return;
-          }
-        }
-        
-        // If only local data, auto-upload
-        if (hasLocal && !hasCloud) {
-          await syncService.uploadLocalToCloud(user.id);
-          return;
-        }
-        
-        // Both have data - show dialog
-        if (hasLocal && hasCloud) {
-          setMigrationInfo({
-            hasLocalData: hasLocal,
-            hasCloudData: hasCloud,
-            localTaskCount: localData.tasks.length,
-            cloudTaskCount,
-          });
-          setShowMigrationDialog(true);
-        }
+      try {
+        const cloudData = await syncService.getCloudData(user.id);
+        dispatch({ type: 'LOAD_DATA', payload: cloudData });
+      } catch (error) {
+        console.error('Failed to load cloud data:', error);
+        // Optionally, dispatch CLEAR_DATA or set an error state here
+        dispatch({ type: 'CLEAR_DATA' }); // Clear data if cloud fetch fails
       }
     };
-    
-    checkSync();
-  }, [user, syncChecked]);
 
-  // Reset sync check when user logs out
-  useEffect(() => {
-    if (!user) {
-      setSyncChecked(false);
-    }
+    fetchCloudData();
   }, [user]);
-
-  // Save to localStorage and sync to cloud on changes
-  useEffect(() => {
-    if (!state.isLoading) {
-      const data: AppData = {
-        tasks: state.tasks,
-        dailyProgress: state.dailyProgress,
-        version: '1.0.0',
-      };
-      saveAppData(data);
-    }
-  }, [state.tasks, state.dailyProgress, state.isLoading]);
-
-  const handleMigrationSelect = async (strategy: MergeStrategy) => {
-    if (!user) return;
-    
-    if (strategy === 'upload-local') {
-      await syncService.uploadLocalToCloud(user.id);
-    } else if (strategy === 'replace-with-cloud') {
-      const cloudData = await syncService.replaceLocalWithCloud(user.id);
-      dispatch({ type: 'LOAD_DATA', payload: cloudData });
-    }
-    // 'cancel' - do nothing, keep local data
-  };
 
   const addTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
     const now = new Date().toISOString();
     const task: Task = {
       ...taskData,
-      id: crypto.randomUUID(),
+      id: generateId(),
       createdAt: now,
       updatedAt: now,
     };
     dispatch({ type: 'ADD_TASK', payload: task });
-    
+
     // Sync to cloud if logged in
     if (user) {
       syncService.syncTask(task, user.id).catch(console.error);
@@ -218,7 +146,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateTask = useCallback((task: Task) => {
     const updatedTask = { ...task, updatedAt: new Date().toISOString() };
     dispatch({ type: 'UPDATE_TASK', payload: updatedTask });
-    
+
     // Sync to cloud if logged in
     if (user) {
       syncService.syncTask(updatedTask, user.id).catch(console.error);
@@ -227,7 +155,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteTask = useCallback((taskId: string) => {
     dispatch({ type: 'DELETE_TASK', payload: taskId });
-    
+
     // Sync to cloud if logged in
     if (user) {
       syncService.deleteTaskFromCloud(taskId).catch(console.error);
@@ -244,7 +172,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         notes,
       };
       dispatch({ type: 'UPDATE_PROGRESS', payload: progress });
-      
+
       // Sync to cloud if logged in
       if (user) {
         syncService.syncProgress(progress, user.id).catch(console.error);
@@ -274,10 +202,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!task) return { completed: 0, total: 0, percentage: 0 };
 
       const days = getDaysInRange(task.startDate, task.endDate);
-      const today = getToday();
-      
-      // Only count days up to today that match the day pattern
-      const relevantDays = getActiveTaskDays(task, days).filter((d) => d <= today);
+
+      // Count all days in range that match the day pattern
+      const relevantDays = getActiveTaskDays(task, days);
       const total = relevantDays.length;
 
       const completed = relevantDays.filter((date) => {
@@ -295,7 +222,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const importData = useCallback((data: AppData) => {
     dispatch({ type: 'IMPORT_DATA', payload: data });
-    
+
     // Sync all to cloud if logged in
     if (user) {
       syncService.uploadLocalToCloud(user.id).catch(console.error);
@@ -346,15 +273,6 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <TaskContext.Provider value={value}>
       {children}
-      <DataMigrationDialog
-        open={showMigrationDialog}
-        onClose={() => setShowMigrationDialog(false)}
-        onSelect={handleMigrationSelect}
-        hasLocalData={migrationInfo.hasLocalData}
-        hasCloudData={migrationInfo.hasCloudData}
-        localTaskCount={migrationInfo.localTaskCount}
-        cloudTaskCount={migrationInfo.cloudTaskCount}
-      />
     </TaskContext.Provider>
   );
 };

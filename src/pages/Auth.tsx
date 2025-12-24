@@ -16,7 +16,7 @@ const passwordSchema = z.string().min(6, 'Password must be at least 6 characters
 const Auth: React.FC = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, signIn, signUp, signInWithGoogle } = useAuth();
-  
+
   const [tab, setTab] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,7 +34,7 @@ const Auth: React.FC = () => {
 
   const validateForm = (): boolean => {
     setError(null);
-    
+
     try {
       emailSchema.parse(email);
     } catch (e) {
@@ -63,9 +63,9 @@ const Auth: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setLoading(true);
     setError(null);
     setSuccess(null);
@@ -101,7 +101,7 @@ const Auth: React.FC = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     setError(null);
-    
+
     const { error } = await signInWithGoogle();
     if (error) {
       setError(error.message);
@@ -164,7 +164,7 @@ const Auth: React.FC = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <div className="relative">
@@ -207,7 +207,7 @@ const Auth: React.FC = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="signup-password">Password</Label>
                   <div className="relative">
@@ -286,16 +286,7 @@ const Auth: React.FC = () => {
             Continue with Google
           </Button>
 
-          <p className="text-center text-sm text-muted-foreground mt-6">
-            You can also use the app without signing in.{' '}
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="text-primary hover:underline"
-            >
-              Continue offline
-            </button>
-          </p>
+
         </CardContent>
       </Card>
     </div>
