@@ -133,6 +133,60 @@ export type Database = {
         }
         Relationships: []
       }
+      user_preferences: {
+        Row: {
+          analytics_preferences: Json | null
+          avatar_color: string | null
+          avatar_type: string | null
+          created_at: string
+          default_category: string | null
+          default_color: string | null
+          default_priority: string | null
+          display_name: string | null
+          id: string
+          schema_version: number | null
+          theme: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+          week_start: string | null
+        }
+        Insert: {
+          analytics_preferences?: Json | null
+          avatar_color?: string | null
+          avatar_type?: string | null
+          created_at?: string
+          default_category?: string | null
+          default_color?: string | null
+          default_priority?: string | null
+          display_name?: string | null
+          id?: string
+          schema_version?: number | null
+          theme?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+          week_start?: string | null
+        }
+        Update: {
+          analytics_preferences?: Json | null
+          avatar_color?: string | null
+          avatar_type?: string | null
+          created_at?: string
+          default_category?: string | null
+          default_color?: string | null
+          default_priority?: string | null
+          display_name?: string | null
+          id?: string
+          schema_version?: number | null
+          theme?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+          week_start?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
