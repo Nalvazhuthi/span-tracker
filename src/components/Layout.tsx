@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { CalendarDays, ListTodo, BarChart3, Settings, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { UserMenu } from './UserMenu';
 
 const navItems = [
   { path: '/', label: 'Today', icon: CalendarDays },
@@ -50,7 +51,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Link>
               );
             })}
+            <div className="ml-2">
+              <UserMenu />
+            </div>
           </nav>
+
+          {/* Mobile User Menu */}
+          <div className="md:hidden">
+            <UserMenu />
+          </div>
         </div>
       </header>
 
