@@ -265,23 +265,57 @@ const Tasks: React.FC = () => {
           </>
         )}
 
-        {/* Task Grid/List */}
+        {/* Task Grid/List Grouped by Month */}
         {filteredTasks.length > 0 ? (
-          <div className={cn(
-            'gap-4',
-            viewMode === 'grid' 
-              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-              : 'flex flex-col'
-          )}>
-            {filteredTasks.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                compact={viewMode === 'list'}
-              />
-            ))}
+          <div className="space-y-8">
+            {Object.entries(
+              filteredTasks.reduce((groups, task) => {
+                const date = new Date(task.startDate);
+                const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(task);
+                return groups;
+              }, {} as Record<string, Task[]>)
+            )
+              .sort(([keyA], [keyB]) => {
+                const current = new Date();
+                const currentMonthKey = `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`;
+                
+                const isAFuture = keyA >= currentMonthKey;
+                const isBFuture = keyB >= currentMonthKey;
+
+                if (isAFuture && isBFuture) return keyA.localeCompare(keyB); // Ascending for future
+                if (!isAFuture && !isBFuture) return keyB.localeCompare(keyA); // Descending for past
+                return isAFuture ? -1 : 1; // Future first
+              })
+              .map(([monthKey, monthTasks]) => {
+                const [year, month] = monthKey.split('-');
+                const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleString('default', { month: 'long', year: 'numeric' });
+                
+                return (
+                  <div key={monthKey}>
+                    <h3 className="text-lg font-semibold text-muted-foreground mb-4 sticky top-0 bg-background/95 backdrop-blur py-2 z-10 border-b">
+                      {monthName}
+                    </h3>
+                    <div className={cn(
+                      'gap-4',
+                      viewMode === 'grid' 
+                        ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+                        : 'flex flex-col'
+                    )}>
+                      {monthTasks.map((task) => (
+                        <TaskCard
+                          key={task.id}
+                          task={task}
+                          onEdit={handleEdit}
+                          onDelete={handleDelete}
+                          compact={viewMode === 'list'}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
           </div>
         ) : tasks.length > 0 ? (
           <div className="rounded-xl border border-dashed border-border bg-muted/30 p-8 text-center">

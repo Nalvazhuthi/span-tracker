@@ -31,7 +31,7 @@ const timeRangeOptions: { value: TimeRange; label: string }[] = [
 const Analytics: React.FC = () => {
   const { tasks, isLoading } = useTasks();
   const [timeRange, setTimeRange] = useState<TimeRange>('1w');
-  const [chartType, setChartType] = useState<ChartType>('bar');
+  const [chartType, setChartType] = useState<ChartType>('line');
   const today = getToday();
 
   const dateRange = useMemo(() => {
