@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useTasks } from '@/context/TaskContext';
 import { getDaysInRange, formatDate } from '@/utils/dateUtils';
 import { generateProgressKey } from '@/utils/storageUtils';
+import { isTaskActiveOnDate } from '@/utils/taskDayUtils';
 import { Flame, Award, Calendar, TrendingUp } from 'lucide-react';
 import { subDays, parseISO, format } from 'date-fns';
 
@@ -19,8 +20,11 @@ export const StreakDisplay: React.FC<StreakDisplayProps> = ({ dateRange }) => {
     const startLimit = subDays(parseISO(dateRange.end), 365);
 
     while (parseISO(checkDate) >= startLimit) {
+      // Filter tasks that should be active on this specific date
       const tasksOnDate = tasks.filter(
-        (task) => checkDate >= task.startDate && checkDate <= task.endDate
+        (task) => 
+          !task.isPaused && 
+          isTaskActiveOnDate(task, checkDate)
       );
 
       if (tasksOnDate.length === 0) {
@@ -34,7 +38,16 @@ export const StreakDisplay: React.FC<StreakDisplayProps> = ({ dateRange }) => {
         return dailyProgress[key]?.status === 'done';
       });
 
-      if (!allDone) break;
+      if (!allDone) {
+        // If checking today and it's not done, don't break streak yet
+        // just don't count today
+        if (checkDate === dateRange.end) {
+          const prevDate = subDays(parseISO(checkDate), 1);
+          checkDate = formatDate(prevDate);
+          continue;
+        }
+        break;
+      }
       currentStreak++;
 
       const prevDate = subDays(parseISO(checkDate), 1);
@@ -53,7 +66,9 @@ export const StreakDisplay: React.FC<StreakDisplayProps> = ({ dateRange }) => {
 
     allDates.forEach((date, index) => {
       const tasksOnDate = tasks.filter(
-        (task) => date >= task.startDate && date <= task.endDate
+        (task) => 
+          !task.isPaused && 
+          isTaskActiveOnDate(task, date)
       );
 
       if (tasksOnDate.length === 0) {

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { Check, X, Circle, Clock, ChevronDown, ChevronUp, MessageSquare, ShieldCheck } from 'lucide-react';
+import { Check, X, Circle, Clock, ChevronDown, ChevronUp, MessageSquare, ShieldCheck, Play, Pause, Square, Timer } from 'lucide-react';
 import { subDays, format } from 'date-fns';
 
 interface DailyTaskItemProps {
@@ -35,6 +35,51 @@ export const DailyTaskItem: React.FC<DailyTaskItemProps> = ({ task, date }) => {
   const [expanded, setExpanded] = useState(false);
   const [timeSpent, setTimeSpent] = useState(progress?.timeSpent?.toString() || '');
   const [notes, setNotes] = useState(progress?.notes || '');
+  const [timerActive, setTimerActive] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (timerActive) {
+      interval = setInterval(() => {
+        setTimerSeconds((prev) => prev + 1);
+      }, 1000);
+    } else if (!timerActive && timerSeconds !== 0) {
+      if (interval) clearInterval(interval);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timerActive, timerSeconds]);
+
+  const toggleTimer = () => {
+    setTimerActive(!timerActive);
+  };
+
+  const stopTimer = () => {
+    setTimerActive(false);
+    const addedMinutes = Math.ceil(timerSeconds / 60);
+    const currentMinutes = timeSpent ? parseInt(timeSpent) : 0;
+    const newTotal = currentMinutes + addedMinutes;
+    setTimeSpent(newTotal.toString());
+    
+    // Auto-save progress with new time
+    updateProgress(
+      task.id,
+      date,
+      currentStatus,
+      newTotal,
+      notes || undefined
+    );
+    
+    setTimerSeconds(0);
+  };
+
+  const formatTimer = (totalSeconds: number) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   // Auto Carry Forward Logic
   useEffect(() => {
@@ -148,15 +193,54 @@ export const DailyTaskItem: React.FC<DailyTaskItemProps> = ({ task, date }) => {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 flex-1">
               <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-              <Input
-                type="number"
-                placeholder="Minutes spent"
-                value={timeSpent}
-                onChange={(e) => setTimeSpent(e.target.value)}
-                onBlur={handleDetailsUpdate}
-                className="h-9"
-                min="0"
-              />
+              <div className="flex-1 flex items-center gap-2">
+                <Input
+                  type="number"
+                  placeholder="Minutes spent"
+                  value={timeSpent}
+                  onChange={(e) => setTimeSpent(e.target.value)}
+                  onBlur={handleDetailsUpdate}
+                  className="h-9 w-full min-w-[100px]"
+                  min="0"
+                />
+                
+                {/* Timer Controls */}
+                <div className="flex items-center gap-1 rounded-md border border-input p-1 bg-background">
+                   {timerActive ? (
+                     <span className="text-xs font-mono font-medium w-12 text-center text-primary animate-pulse">
+                        {formatTimer(timerSeconds)}
+                     </span>
+                   ) : (
+                      timerSeconds > 0 && (
+                        <span className="text-xs font-mono font-medium w-12 text-center text-muted-foreground">
+                          {formatTimer(timerSeconds)}
+                        </span>
+                      )
+                   )}
+
+                   <Button
+                     variant="ghost"
+                     size="icon"
+                     className={cn("h-7 w-7", timerActive && "text-primary")}
+                     onClick={toggleTimer}
+                     title={timerActive ? "Pause Timer" : "Start Timer"}
+                   >
+                     {timerActive ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                   </Button>
+                   
+                   {(timerActive || timerSeconds > 0) && (
+                     <Button
+                       variant="ghost"
+                       size="icon"
+                       className="h-7 w-7 text-destructive hover:text-destructive"
+                       onClick={stopTimer}
+                       title="Stop & Save Time"
+                     >
+                       <Square className="h-3 w-3 fill-current" />
+                     </Button>
+                   )}
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex items-start gap-2">
