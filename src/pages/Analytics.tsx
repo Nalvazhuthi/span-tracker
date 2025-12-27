@@ -31,7 +31,7 @@ const timeRangeOptions: { value: TimeRange; label: string }[] = [
 const Analytics: React.FC = () => {
   const { tasks, isLoading } = useTasks();
   const [timeRange, setTimeRange] = useState<TimeRange>('1w');
-  const [chartType, setChartType] = useState<ChartType>('line');
+  const [chartType, setChartType] = useState<ChartType>('area');
   const today = getToday();
 
   const dateRange = useMemo(() => {
@@ -169,7 +169,7 @@ const Analytics: React.FC = () => {
           {/* Task Progress Chart */}
           <div className="rounded-xl border border-border bg-card p-6">
             <h3 className="text-lg font-semibold mb-4">Task Completion</h3>
-            <ProgressChart chartType={chartType} dateRange={dateRange} />
+            <ProgressChart chartType={"bar"} dateRange={dateRange} />
           </div>
         </div>
 
