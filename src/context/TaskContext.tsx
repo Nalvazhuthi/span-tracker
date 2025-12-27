@@ -115,12 +115,36 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
+        // Attempt to sync any local data to cloud first
+        let uploadFailed = false;
+        try {
+          const localData = loadAppData();
+          if (localData.tasks.length > 0 || Object.keys(localData.dailyProgress).length > 0) {
+            await syncService.uploadLocalToCloud(user.id);
+          }
+        } catch (syncError) {
+          console.error('Failed to sync local data to cloud on init:', syncError);
+          uploadFailed = true;
+        }
+
         const cloudData = await syncService.getCloudData(user.id);
-        dispatch({ type: 'LOAD_DATA', payload: cloudData });
+
+        // Safety check: If upload failed AND cloud data is empty, do NOT overwrite local data with empty cloud data.
+        // This prevents data loss when offline or when schema mismatch prevents upload.
+        if (uploadFailed && cloudData.tasks.length === 0 && Object.keys(cloudData.dailyProgress).length === 0) {
+          console.warn('Upload failed and cloud empty. Preserving local data.');
+          // We can optionally refresh state from local just to be sure
+          const local = loadAppData();
+          dispatch({ type: 'LOAD_DATA', payload: local });
+        } else {
+          // Normal case: Cloud is source of truth, or we successfully uploaded local first.
+          dispatch({ type: 'LOAD_DATA', payload: cloudData });
+        }
+
       } catch (error) {
         console.error('Failed to load cloud data:', error);
-        // Optionally, dispatch CLEAR_DATA or set an error state here
-        dispatch({ type: 'CLEAR_DATA' }); // Clear data if cloud fetch fails
+        // Do NOT clear data here. Keep local data if cloud fetch fails.
+        // dispatch({ type: 'CLEAR_DATA' }); 
       }
     };
 

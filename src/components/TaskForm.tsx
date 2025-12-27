@@ -9,8 +9,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { getToday, isValidDateRange, formatDate } from '@/utils/dateUtils';
 import { useTasks } from '@/context/TaskContext';
 import { toast } from 'sonner';
-import { X, CalendarIcon } from 'lucide-react';
+import { X, CalendarIcon, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { format, parseISO } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -31,6 +32,7 @@ const categoryColors: Record<TaskCategory, string> = {
 export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask }) => {
   const { addTask, updateTask } = useTasks();
   const today = getToday();
+  const isOnline = useOnlineStatus();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -403,10 +405,16 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" disabled={!isOnline}>
               {editTask ? 'Save Changes' : 'Create Task'}
             </Button>
           </div>
+          {!isOnline && (
+            <div className="text-destructive text-sm text-center mt-2 flex items-center justify-center gap-2">
+              <WifiOff className="h-4 w-4" />
+              <span>You are offline. Cannot save changes.</span>
+            </div>
+          )}
         </form>
       </DialogContent>
     </Dialog>

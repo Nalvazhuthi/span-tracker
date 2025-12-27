@@ -150,6 +150,72 @@ export const syncService = {
     };
   },
 
+  // Smart upsert task that adapts to the database schema dynamically
+  // It learns which columns are missing and avoids sending them in future requests
+  smartUpsertTask: async (cloudTask: Omit<CloudTask, 'created_at' | 'updated_at'>): Promise<void> => {
+    // Known new columns that might cause issues in legacy DBs
+    const POTENTIAL_NEW_COLUMNS = ['is_paused', 'auto_carry_forward'];
+
+    // Create a payload that excludes known missing columns
+    const payload: any = { ...cloudTask };
+
+    // Remove fields that we already know are missing from the DB
+    // @ts-ignore - globalMissingColumns is defined at module scope
+    if (typeof globalMissingColumns !== 'undefined') {
+      globalMissingColumns.forEach((col: string) => {
+        delete payload[col];
+      });
+    }
+
+    const maxRetries = 3;
+    let attempt = 0;
+
+    while (attempt < maxRetries) {
+      try {
+        // Try upsert
+        const { error } = await supabase
+          .from('tasks')
+          .upsert(payload, { onConflict: 'id' });
+
+        if (!error) return; // Success!
+
+        // Check for schema mismatch error
+        if (error.code === 'PGRST204' || error.message?.includes('Could not find the')) {
+          // Extract column name from error message
+          const match = error.message.match(/'(\w+)' column/);
+          if (match && match[1]) {
+            const missingColumn = match[1];
+            console.warn(`Schema adaptation: Database is missing column '${missingColumn}'. Switching to legacy mode.`);
+
+            // Aggressive Fallback: If one new column is missing, likely ALL are missing.
+            // Remove the specific missing one AND all other potential new columns to save round trips.
+            // @ts-ignore
+            if (typeof globalMissingColumns !== 'undefined') {
+              globalMissingColumns.add(missingColumn);
+              POTENTIAL_NEW_COLUMNS.forEach(col => globalMissingColumns.add(col));
+            }
+
+            delete payload[missingColumn];
+            POTENTIAL_NEW_COLUMNS.forEach(col => delete payload[col]);
+
+            attempt++;
+            continue;
+          }
+        }
+
+        // If we get here, it's a different error
+        throw error;
+
+      } catch (error: any) {
+        if (attempt >= maxRetries) {
+          console.error('Final sync failure after schema adaptation attempts:', error);
+          throw error;
+        }
+        throw error;
+      }
+    }
+  },
+
   // Upload local data to cloud
   uploadLocalToCloud: async (userId: string): Promise<void> => {
     const localData = loadAppData();
@@ -157,14 +223,7 @@ export const syncService = {
     // Upload tasks
     for (const task of localData.tasks) {
       const cloudTask = localToCloudTask(task, userId);
-      const { error } = await supabase
-        .from('tasks')
-        .upsert(cloudTask, { onConflict: 'id' });
-
-      if (error) {
-        console.error('Error uploading task:', error);
-        throw error;
-      }
+      await syncService.smartUpsertTask(cloudTask);
     }
 
     // Upload progress
@@ -191,14 +250,7 @@ export const syncService = {
   // Sync a single task to cloud
   syncTask: async (task: Task, userId: string): Promise<void> => {
     const cloudTask = localToCloudTask(task, userId);
-    const { error } = await supabase
-      .from('tasks')
-      .upsert(cloudTask, { onConflict: 'id' });
-
-    if (error) {
-      console.error('Error syncing task:', error);
-      throw error;
-    }
+    await syncService.smartUpsertTask(cloudTask);
   },
 
   // Delete a task from cloud
@@ -234,3 +286,6 @@ export const syncService = {
     return cloudData;
   },
 };
+
+// Track missing columns globally for the session to avoid repeated errors
+const globalMissingColumns = new Set<string>();

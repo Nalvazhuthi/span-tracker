@@ -14,6 +14,7 @@ import WeeklyReview from "./pages/WeeklyReview";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { OfflineIndicator } from "@/components/OfflineIndicator";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
             <TooltipProvider>
               <Toaster />
               <Sonner />
+              <OfflineIndicator />
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />

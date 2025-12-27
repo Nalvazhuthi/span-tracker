@@ -21,7 +21,7 @@ const timeRangeOptions: { value: TimeRange; label: string }[] = [
 export const ConsistencyCalendar: React.FC = () => {
   const { tasks, dailyProgress } = useTasks();
   const today = getToday();
-  const [timeRange, setTimeRange] = useState<TimeRange>('3m');
+  const [timeRange, setTimeRange] = useState<TimeRange>('1y');
   const containerRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(12);
   const [cellGap, setCellGap] = useState(2);
@@ -33,7 +33,7 @@ export const ConsistencyCalendar: React.FC = () => {
       const containerWidth = containerRef.current.offsetWidth;
       const dayLabelWidth = 28; // Width for day labels
       const availableWidth = containerWidth - dayLabelWidth - 16; // padding
-      
+
       // Calculate number of weeks based on time range
       let numWeeks: number;
       switch (timeRange) {
@@ -44,15 +44,15 @@ export const ConsistencyCalendar: React.FC = () => {
         case '1y': numWeeks = 53; break;
         default: numWeeks = 14;
       }
-      
+
       // Calculate optimal cell size to fit all weeks
       const minGap = 2;
       const maxCellSize = 16;
       const minCellSize = 8;
-      
+
       const optimalCellSize = Math.floor((availableWidth - (numWeeks - 1) * minGap) / numWeeks);
       const newCellSize = Math.min(maxCellSize, Math.max(minCellSize, optimalCellSize));
-      
+
       setCellSize(newCellSize);
       setCellGap(newCellSize >= 12 ? 2 : 1);
     };
@@ -186,7 +186,7 @@ export const ConsistencyCalendar: React.FC = () => {
 
       <div className="w-full">
         {/* Month labels */}
-        <div 
+        <div
           className="flex mb-1 text-xs text-muted-foreground"
           style={{ marginLeft: `${28 + cellGap}px` }}
         >
@@ -195,8 +195,8 @@ export const ConsistencyCalendar: React.FC = () => {
               key={idx}
               style={{
                 marginLeft: idx === 0 ? `${label.colStart * (cellSize + cellGap)}px` : undefined,
-                width: idx < monthLabels.length - 1 
-                  ? `${(monthLabels[idx + 1].colStart - label.colStart) * (cellSize + cellGap)}px` 
+                width: idx < monthLabels.length - 1
+                  ? `${(monthLabels[idx + 1].colStart - label.colStart) * (cellSize + cellGap)}px`
                   : 'auto',
               }}
               className="flex-shrink-0 truncate"
@@ -211,9 +211,9 @@ export const ConsistencyCalendar: React.FC = () => {
           {/* Day labels */}
           <div className="flex flex-col text-xs text-muted-foreground" style={{ gap: `${cellGap}px`, width: '28px' }}>
             {weekDays.map((day, idx) => (
-              <div 
-                key={day} 
-                className="flex items-center justify-end pr-1" 
+              <div
+                key={day}
+                className="flex items-center justify-end pr-1"
                 style={{ height: `${cellSize}px`, fontSize: cellSize <= 10 ? '9px' : '11px' }}
               >
                 {idx % 2 === 1 ? day.slice(0, cellSize <= 10 ? 1 : 3) : ''}
@@ -229,9 +229,9 @@ export const ConsistencyCalendar: React.FC = () => {
                   {/* Fill empty days at start of first week */}
                   {weekIdx === 0 &&
                     Array.from({ length: 7 - week.length }).map((_, i) => (
-                      <div 
-                        key={`empty-${i}`} 
-                        className="rounded-sm" 
+                      <div
+                        key={`empty-${i}`}
+                        className="rounded-sm"
                         style={{ width: `${cellSize}px`, height: `${cellSize}px` }}
                       />
                     ))}
