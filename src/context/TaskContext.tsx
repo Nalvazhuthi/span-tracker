@@ -1,8 +1,16 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo, useState } from 'react';
-import { Task, DailyProgress, AppData, TaskStatus } from '@/types/task';
-import { useAuth } from './AuthContext';
-import { syncService } from '@/services/syncService';
-import { generateId } from '@/utils/idUtils';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
+import { Task, DailyProgress, AppData, TaskStatus } from "@/types/task";
+import { useAuth } from "./AuthContext";
+import { syncService } from "@/services/syncService";
+import { generateId } from "@/utils/idUtils";
 
 interface TaskState {
   tasks: Task[];
@@ -11,22 +19,35 @@ interface TaskState {
 }
 
 type TaskAction =
-  | { type: 'LOAD_DATA'; payload: AppData }
-  | { type: 'ADD_TASK'; payload: Task }
-  | { type: 'UPDATE_TASK'; payload: Task }
-  | { type: 'DELETE_TASK'; payload: string }
-  | { type: 'UPDATE_PROGRESS'; payload: DailyProgress }
-  | { type: 'IMPORT_DATA'; payload: AppData }
-  | { type: 'CLEAR_DATA' };
+  | { type: "LOAD_DATA"; payload: AppData }
+  | { type: "ADD_TASK"; payload: Task }
+  | { type: "UPDATE_TASK"; payload: Task }
+  | { type: "DELETE_TASK"; payload: string }
+  | { type: "UPDATE_PROGRESS"; payload: DailyProgress }
+  | { type: "IMPORT_DATA"; payload: AppData }
+  | { type: "CLEAR_DATA" };
 
 interface TaskContextValue extends TaskState {
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  addTask: (task: Omit<Task, "id" | "createdAt" | "updatedAt">) => void;
   updateTask: (task: Task) => void;
   deleteTask: (taskId: string) => void;
-  updateProgress: (taskId: string, date: string, status: TaskStatus, timeSpent?: number, notes?: string) => void;
+  updateProgress: (
+    taskId: string,
+    date: string,
+    status: TaskStatus,
+    timeSpent?: number,
+    notes?: string
+  ) => void;
   getTasksForDate: (date: string) => Task[];
-  getProgressForTask: (taskId: string, date: string) => DailyProgress | undefined;
-  getTaskProgress: (taskId: string) => { completed: number; total: number; percentage: number };
+  getProgressForTask: (
+    taskId: string,
+    date: string
+  ) => DailyProgress | undefined;
+  getTaskProgress: (taskId: string) => {
+    completed: number;
+    total: number;
+    percentage: number;
+  };
   importData: (data: AppData) => void;
   exportData: () => AppData;
   clearData: () => void;
@@ -36,26 +57,26 @@ const TaskContext = createContext<TaskContextValue | undefined>(undefined);
 
 const taskReducer = (state: TaskState, action: TaskAction): TaskState => {
   switch (action.type) {
-    case 'LOAD_DATA':
+    case "LOAD_DATA":
       return {
         ...state,
         tasks: action.payload.tasks,
         dailyProgress: action.payload.dailyProgress,
         isLoading: false,
       };
-    case 'ADD_TASK':
+    case "ADD_TASK":
       return {
         ...state,
         tasks: [...state.tasks, action.payload],
       };
-    case 'UPDATE_TASK':
+    case "UPDATE_TASK":
       return {
         ...state,
         tasks: state.tasks.map((t) =>
           t.id === action.payload.id ? action.payload : t
         ),
       };
-    case 'DELETE_TASK':
+    case "DELETE_TASK":
       const taskId = action.payload;
       const newProgress = { ...state.dailyProgress };
       Object.keys(newProgress).forEach((key) => {
@@ -68,8 +89,11 @@ const taskReducer = (state: TaskState, action: TaskAction): TaskState => {
         tasks: state.tasks.filter((t) => t.id !== taskId),
         dailyProgress: newProgress,
       };
-    case 'UPDATE_PROGRESS':
-      const key = generateProgressKey(action.payload.taskId, action.payload.date);
+    case "UPDATE_PROGRESS":
+      const key = generateProgressKey(
+        action.payload.taskId,
+        action.payload.date
+      );
       return {
         ...state,
         dailyProgress: {
@@ -77,13 +101,13 @@ const taskReducer = (state: TaskState, action: TaskAction): TaskState => {
           [key]: action.payload,
         },
       };
-    case 'IMPORT_DATA':
+    case "IMPORT_DATA":
       return {
         ...state,
         tasks: action.payload.tasks,
         dailyProgress: action.payload.dailyProgress,
       };
-    case 'CLEAR_DATA':
+    case "CLEAR_DATA":
       return {
         tasks: [],
         dailyProgress: {},
@@ -94,11 +118,13 @@ const taskReducer = (state: TaskState, action: TaskAction): TaskState => {
   }
 };
 
-import { generateProgressKey, loadAppData, saveAppData } from '@/utils/storageUtils';
-import { getToday, getDaysInRange } from '@/utils/dateUtils';
-import { isTaskActiveOnDate, getActiveTaskDays } from '@/utils/taskDayUtils';
+import { generateProgressKey, clearAppData } from "@/utils/storageUtils";
+import { getToday, getDaysInRange } from "@/utils/dateUtils";
+import { isTaskActiveOnDate, getActiveTaskDays } from "@/utils/taskDayUtils";
 
-export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { user } = useAuth();
   const [state, dispatch] = useReducer(taskReducer, {
     tasks: [],
@@ -107,108 +133,83 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   // Load cloud data when user changes
+  // Load cloud data when user logs in
   useEffect(() => {
     const fetchCloudData = async () => {
       if (!user) {
-        dispatch({ type: 'CLEAR_DATA' });
+        dispatch({ type: "CLEAR_DATA" });
         return;
       }
 
       try {
-        // Attempt to sync any local data to cloud first
-        let uploadFailed = false;
-        try {
-          const localData = loadAppData();
-          if (localData.tasks.length > 0 || Object.keys(localData.dailyProgress).length > 0) {
-            await syncService.uploadLocalToCloud(user.id);
-          }
-        } catch (syncError) {
-          console.error('Failed to sync local data to cloud on init:', syncError);
-          uploadFailed = true;
-        }
-
         const cloudData = await syncService.getCloudData(user.id);
-
-        // Safety check: If upload failed AND cloud data is empty, do NOT overwrite local data with empty cloud data.
-        // This prevents data loss when offline or when schema mismatch prevents upload.
-        if (uploadFailed && cloudData.tasks.length === 0 && Object.keys(cloudData.dailyProgress).length === 0) {
-          console.warn('Upload failed and cloud empty. Preserving local data.');
-          // We can optionally refresh state from local just to be sure
-          const local = loadAppData();
-          dispatch({ type: 'LOAD_DATA', payload: local });
-        } else {
-          // Normal case: Cloud is source of truth, or we successfully uploaded local first.
-          dispatch({ type: 'LOAD_DATA', payload: cloudData });
-        }
-
+        dispatch({ type: "LOAD_DATA", payload: cloudData });
       } catch (error) {
-        console.error('Failed to load cloud data:', error);
-        // Do NOT clear data here. Keep local data if cloud fetch fails.
-        // dispatch({ type: 'CLEAR_DATA' }); 
+        console.error("Failed to load cloud data:", error);
+        // Start with empty data if cloud fetch fails
+        dispatch({ type: "CLEAR_DATA" });
       }
     };
 
     fetchCloudData();
   }, [user]);
 
-  // Load local data on mount so anonymous users keep their tasks
-  useEffect(() => {
-    try {
-      const local = loadAppData();
-      dispatch({ type: 'LOAD_DATA', payload: local });
-    } catch (error) {
-      console.error('Failed to load local data:', error);
-    }
-  }, []);
+  // Note: Local storage persistence has been disabled.
+  // Data is only stored in the cloud for logged-in users.
+  // Anonymous users will lose their data on page refresh.
 
-  // Persist local changes to storage
-  useEffect(() => {
-    try {
-      if (!state.isLoading) {
-        saveAppData({ tasks: state.tasks, dailyProgress: state.dailyProgress, version: '1.0.0' });
+  const addTask = useCallback(
+    (taskData: Omit<Task, "id" | "createdAt" | "updatedAt">) => {
+      const now = new Date().toISOString();
+      const task: Task = {
+        ...taskData,
+        id: generateId(),
+        createdAt: now,
+        updatedAt: now,
+      };
+      dispatch({ type: "ADD_TASK", payload: task });
+
+      // Sync to cloud if logged in
+      if (user) {
+        syncService.syncTask(task, user.id).catch(console.error);
       }
-    } catch (error) {
-      console.error('Failed to save app data:', error);
-    }
-  }, [state.tasks, state.dailyProgress, state.isLoading]);
+    },
+    [user]
+  );
 
-  const addTask = useCallback((taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const now = new Date().toISOString();
-    const task: Task = {
-      ...taskData,
-      id: generateId(),
-      createdAt: now,
-      updatedAt: now,
-    };
-    dispatch({ type: 'ADD_TASK', payload: task });
+  const updateTask = useCallback(
+    (task: Task) => {
+      const updatedTask = { ...task, updatedAt: new Date().toISOString() };
+      dispatch({ type: "UPDATE_TASK", payload: updatedTask });
 
-    // Sync to cloud if logged in
-    if (user) {
-      syncService.syncTask(task, user.id).catch(console.error);
-    }
-  }, [user]);
+      // Sync to cloud if logged in
+      if (user) {
+        syncService.syncTask(updatedTask, user.id).catch(console.error);
+      }
+    },
+    [user]
+  );
 
-  const updateTask = useCallback((task: Task) => {
-    const updatedTask = { ...task, updatedAt: new Date().toISOString() };
-    dispatch({ type: 'UPDATE_TASK', payload: updatedTask });
+  const deleteTask = useCallback(
+    (taskId: string) => {
+      dispatch({ type: "DELETE_TASK", payload: taskId });
 
-    // Sync to cloud if logged in
-    if (user) {
-      syncService.syncTask(updatedTask, user.id).catch(console.error);
-    }
-  }, [user]);
-
-  const deleteTask = useCallback((taskId: string) => {
-    dispatch({ type: 'DELETE_TASK', payload: taskId });
-
-    // Sync to cloud if logged in
-    if (user) {
-      syncService.deleteTaskFromCloud(taskId).catch(console.error);
-    }
-  }, [user]);
+      // Sync to cloud if logged in
+      if (user) {
+        syncService.deleteTaskFromCloud(taskId, user.id).catch(console.error);
+      }
+    },
+    [user]
+  );
 
   const updateProgress = useCallback(
-    (taskId: string, date: string, status: TaskStatus, timeSpent?: number, notes?: string) => {
+    (
+      taskId: string,
+      date: string,
+      status: TaskStatus,
+      timeSpent?: number,
+      notes?: string
+    ) => {
       const progress: DailyProgress = {
         taskId,
         date,
@@ -216,7 +217,7 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         timeSpent,
         notes,
       };
-      dispatch({ type: 'UPDATE_PROGRESS', payload: progress });
+      dispatch({ type: "UPDATE_PROGRESS", payload: progress });
 
       // Sync to cloud if logged in
       if (user) {
@@ -246,7 +247,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 
   const getTaskProgress = useCallback(
-    (taskId: string): { completed: number; total: number; percentage: number } => {
+    (
+      taskId: string
+    ): { completed: number; total: number; percentage: number } => {
       const task = state.tasks.find((t) => t.id === taskId);
       if (!task) return { completed: 0, total: 0, percentage: 0 };
 
@@ -263,7 +266,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const completed = relevantDays.filter((date) => {
         const key = generateProgressKey(taskId, date);
         const progress = state.dailyProgress[key];
-        return progress?.status === 'done' || progress?.status === 'saved-the-day';
+        return (
+          progress?.status === "done" || progress?.status === "saved-the-day"
+        );
       }).length;
 
       const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -273,26 +278,37 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     [state.tasks, state.dailyProgress]
   );
 
-  const importData = useCallback((data: AppData) => {
-    dispatch({ type: 'IMPORT_DATA', payload: data });
+  const importData = useCallback(
+    (data: AppData) => {
+      dispatch({ type: "IMPORT_DATA", payload: data });
 
-    // Sync all to cloud if logged in
-    if (user) {
-      syncService.uploadLocalToCloud(user.id).catch(console.error);
-    }
-  }, [user]);
+      // Sync all to cloud if logged in
+      if (user) {
+        syncService.uploadLocalToCloud(user.id).catch(console.error);
+      }
+    },
+    [user]
+  );
 
   const exportData = useCallback((): AppData => {
     return {
       tasks: state.tasks,
       dailyProgress: state.dailyProgress,
-      version: '1.0.0',
+      version: "1.0.0",
     };
   }, [state.tasks, state.dailyProgress]);
 
   const clearData = useCallback(() => {
-    dispatch({ type: 'CLEAR_DATA' });
-  }, []);
+    dispatch({ type: "CLEAR_DATA" });
+
+    // Clear local storage (if any residual data exists)
+    clearAppData();
+
+    // Clear cloud data if logged in
+    if (user) {
+      syncService.clearCloudData(user.id).catch(console.error);
+    }
+  }, [user]);
 
   const value = useMemo(
     () => ({
@@ -323,17 +339,13 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ]
   );
 
-  return (
-    <TaskContext.Provider value={value}>
-      {children}
-    </TaskContext.Provider>
-  );
+  return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;
 };
 
 export const useTasks = (): TaskContextValue => {
   const context = useContext(TaskContext);
   if (!context) {
-    throw new Error('useTasks must be used within a TaskProvider');
+    throw new Error("useTasks must be used within a TaskProvider");
   }
   return context;
 };

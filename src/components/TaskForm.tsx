@@ -1,20 +1,42 @@
-import React, { useState, useEffect } from 'react';
-import { Task, TaskCategory, CATEGORY_LABELS, DayPattern, Weekday, DAY_PATTERN_LABELS, WEEKDAY_LABELS } from '@/types/task';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { getToday, isValidDateRange, formatDate } from '@/utils/dateUtils';
-import { useTasks } from '@/context/TaskContext';
-import { toast } from 'sonner';
-import { X, CalendarIcon, WifiOff } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useOnlineStatus } from '@/hooks/useOnlineStatus';
-import { format, parseISO } from 'date-fns';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
+import React, { useState, useEffect } from "react";
+import {
+  Task,
+  TaskCategory,
+  CATEGORY_LABELS,
+  DayPattern,
+  Weekday,
+  DAY_PATTERN_LABELS,
+  WEEKDAY_LABELS,
+} from "@/types/task";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { getToday, isValidDateRange, formatDate } from "@/utils/dateUtils";
+import { useTasks } from "@/context/TaskContext";
+import { toast } from "sonner";
+import { X, CalendarIcon, WifiOff } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { format, parseISO } from "date-fns";
+import { Input } from "@/components/ui/input";
 
 interface TaskFormProps {
   open: boolean;
@@ -23,25 +45,29 @@ interface TaskFormProps {
 }
 
 const categoryColors: Record<TaskCategory, string> = {
-  'digital-twin': 'bg-category-digital-twin',
-  'hacking': 'bg-category-hacking',
-  'math': 'bg-category-math',
-  'custom': 'bg-category-custom',
+  "digital-twin": "bg-category-digital-twin",
+  hacking: "bg-category-hacking",
+  math: "bg-category-math",
+  custom: "bg-category-custom",
 };
 
-export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask }) => {
+export const TaskForm: React.FC<TaskFormProps> = ({
+  open,
+  onOpenChange,
+  editTask,
+}) => {
   const { addTask, updateTask } = useTasks();
   const today = getToday();
   const isOnline = useOnlineStatus();
 
   const [formData, setFormData] = useState({
-    name: '',
-    category: 'digital-twin' as TaskCategory,
-    customCategory: '',
+    name: "",
+    category: "digital-twin" as TaskCategory,
+    customCategory: "",
     startDate: today,
     endDate: today,
-    priority: 'medium' as 'low' | 'medium' | 'high',
-    dayPattern: 'daily' as DayPattern,
+    priority: "medium" as "low" | "medium" | "high",
+    dayPattern: "daily" as DayPattern,
     customDays: [] as Weekday[],
     isPaused: false,
     autoCarryForward: false,
@@ -56,24 +82,24 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
       setFormData({
         name: editTask.name,
         category: editTask.category,
-        customCategory: editTask.customCategory || '',
+        customCategory: editTask.customCategory || "",
         startDate: editTask.startDate,
         endDate: editTask.endDate,
-        priority: editTask.priority || 'medium',
-        dayPattern: editTask.dayPattern || 'daily',
+        priority: editTask.priority || "medium",
+        dayPattern: editTask.dayPattern || "daily",
         customDays: editTask.customDays || [],
         isPaused: editTask.isPaused || false,
         autoCarryForward: editTask.autoCarryForward || false,
       });
     } else {
       setFormData({
-        name: '',
-        category: 'digital-twin',
-        customCategory: '',
+        name: "",
+        category: "digital-twin",
+        customCategory: "",
         startDate: today,
         endDate: today,
-        priority: 'medium',
-        dayPattern: 'daily',
+        priority: "medium",
+        dayPattern: "daily",
         customDays: [],
         isPaused: false,
         autoCarryForward: false,
@@ -86,19 +112,19 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Task name is required';
+      newErrors.name = "Task name is required";
     }
 
-    if (formData.category === 'custom' && !formData.customCategory.trim()) {
-      newErrors.customCategory = 'Custom category name is required';
+    if (formData.category === "custom" && !formData.customCategory.trim()) {
+      newErrors.customCategory = "Custom category name is required";
     }
 
     if (!isValidDateRange(formData.startDate, formData.endDate)) {
-      newErrors.endDate = 'End date must be after or equal to start date';
+      newErrors.endDate = "End date must be after or equal to start date";
     }
 
-    if (formData.dayPattern === 'custom' && formData.customDays.length === 0) {
-      newErrors.customDays = 'Select at least one day';
+    if (formData.dayPattern === "custom" && formData.customDays.length === 0) {
+      newErrors.customDays = "Select at least one day";
     }
 
     setErrors(newErrors);
@@ -113,22 +139,26 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
     const taskData = {
       name: formData.name.trim(),
       category: formData.category,
-      customCategory: formData.category === 'custom' ? formData.customCategory.trim() : undefined,
+      customCategory:
+        formData.category === "custom"
+          ? formData.customCategory.trim()
+          : undefined,
       startDate: formData.startDate,
       endDate: formData.endDate,
       priority: formData.priority,
       dayPattern: formData.dayPattern,
-      customDays: formData.dayPattern === 'custom' ? formData.customDays : undefined,
+      customDays:
+        formData.dayPattern === "custom" ? formData.customDays : undefined,
       isPaused: formData.isPaused,
       autoCarryForward: formData.autoCarryForward,
     };
 
     if (editTask) {
       updateTask({ ...editTask, ...taskData });
-      toast.success('Task updated successfully');
+      toast.success("Task updated successfully");
     } else {
       addTask(taskData);
-      toast.success('Task created successfully');
+      toast.success("Task created successfully");
     }
 
     onOpenChange(false);
@@ -147,10 +177,10 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[540px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
-            {editTask ? 'Edit Task' : 'Create New Task'}
+            {editTask ? "Edit Task" : "Create New Task"}
             <Button
               variant="ghost"
               size="icon"
@@ -162,18 +192,22 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Task Name */}
           <div className="space-y-2">
             <Label htmlFor="name">Task Name</Label>
             <Input
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
               placeholder="Enter task name"
-              className={errors.name ? 'border-destructive' : ''}
+              className={errors.name ? "border-destructive" : ""}
             />
-            {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+            {errors.name && (
+              <p className="text-xs text-destructive">{errors.name}</p>
+            )}
           </div>
 
           {/* Category */}
@@ -181,7 +215,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
             <Label>Category</Label>
             <Select
               value={formData.category}
-              onValueChange={(value) => setFormData({ ...formData, category: value as TaskCategory })}
+              onValueChange={(value) =>
+                setFormData({ ...formData, category: value as TaskCategory })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -190,7 +226,11 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
                 {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center gap-2">
-                      <div className={`h-3 w-3 rounded-full ${categoryColors[key as TaskCategory]}`} />
+                      <div
+                        className={`h-3 w-3 rounded-full ${
+                          categoryColors[key as TaskCategory]
+                        }`}
+                      />
                       {label}
                     </div>
                   </SelectItem>
@@ -200,18 +240,22 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
           </div>
 
           {/* Custom Category Name */}
-          {formData.category === 'custom' && (
+          {formData.category === "custom" && (
             <div className="space-y-2">
               <Label htmlFor="customCategory">Custom Category Name</Label>
               <Input
                 id="customCategory"
                 value={formData.customCategory}
-                onChange={(e) => setFormData({ ...formData, customCategory: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, customCategory: e.target.value })
+                }
                 placeholder="Enter category name"
-                className={errors.customCategory ? 'border-destructive' : ''}
+                className={errors.customCategory ? "border-destructive" : ""}
               />
               {errors.customCategory && (
-                <p className="text-xs text-destructive">{errors.customCategory}</p>
+                <p className="text-xs text-destructive">
+                  {errors.customCategory}
+                </p>
               )}
             </div>
           )}
@@ -230,16 +274,27 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.startDate ? format(parseISO(formData.startDate), "PPP") : <span>Pick date</span>}
+                    {formData.startDate ? (
+                      format(parseISO(formData.startDate), "PPP")
+                    ) : (
+                      <span>Pick date</span>
+                    )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={formData.startDate ? parseISO(formData.startDate) : undefined}
+                    selected={
+                      formData.startDate
+                        ? parseISO(formData.startDate)
+                        : undefined
+                    }
                     onSelect={(date) => {
                       if (date) {
-                        setFormData({ ...formData, startDate: formatDate(date) });
+                        setFormData({
+                          ...formData,
+                          startDate: formatDate(date),
+                        });
                         setIsStartDateOpen(false);
                       }
                     }}
@@ -262,26 +317,38 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.endDate ? format(parseISO(formData.endDate), "PPP") : <span>Pick date</span>}
+                    {formData.endDate ? (
+                      format(parseISO(formData.endDate), "PPP")
+                    ) : (
+                      <span>Pick date</span>
+                    )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={formData.endDate ? parseISO(formData.endDate) : undefined}
+                    selected={
+                      formData.endDate ? parseISO(formData.endDate) : undefined
+                    }
                     onSelect={(date) => {
                       if (date) {
                         setFormData({ ...formData, endDate: formatDate(date) });
                         setIsEndDateOpen(false);
                       }
                     }}
-                    disabled={(date) => formData.startDate ? date < parseISO(formData.startDate) : false}
+                    disabled={(date) =>
+                      formData.startDate
+                        ? date < parseISO(formData.startDate)
+                        : false
+                    }
                     initialFocus
                     className="p-3 pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
-              {errors.endDate && <p className="text-xs text-destructive">{errors.endDate}</p>}
+              {errors.endDate && (
+                <p className="text-xs text-destructive">{errors.endDate}</p>
+              )}
             </div>
           </div>
 
@@ -293,7 +360,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
             </Label>
             <Select
               value={formData.dayPattern}
-              onValueChange={(value) => setFormData({ ...formData, dayPattern: value as DayPattern })}
+              onValueChange={(value) =>
+                setFormData({ ...formData, dayPattern: value as DayPattern })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -309,7 +378,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
           </div>
 
           {/* Custom Days Selection */}
-          {formData.dayPattern === 'custom' && (
+          {formData.dayPattern === "custom" && (
             <div className="space-y-2">
               <Label>Select Days</Label>
               <div className="flex flex-wrap gap-2">
@@ -319,10 +388,10 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
                     type="button"
                     onClick={() => toggleCustomDay(day)}
                     className={cn(
-                      'px-3 py-2 rounded-lg text-sm font-medium transition-all border',
+                      "px-3 py-2 rounded-lg text-sm font-medium transition-all border",
                       formData.customDays.includes(day)
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'bg-secondary text-secondary-foreground border-border hover:border-primary/50'
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary text-secondary-foreground border-border hover:border-primary/50"
                     )}
                   >
                     {WEEKDAY_LABELS[day]}
@@ -340,7 +409,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
             <Label>Priority</Label>
             <Select
               value={formData.priority}
-              onValueChange={(value) => setFormData({ ...formData, priority: value as 'low' | 'medium' | 'high' })}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  priority: value as "low" | "medium" | "high",
+                })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -368,45 +442,17 @@ export const TaskForm: React.FC<TaskFormProps> = ({ open, onOpenChange, editTask
             </Select>
           </div>
 
-          {/* Advanced Settings */}
-          <div className="space-y-4 pt-2 border-t">
-            <h4 className="text-sm font-medium text-muted-foreground">Advanced Settings</h4>
-
-            <div className="flex items-center justify-between space-x-2">
-              <Label htmlFor="auto-carry-forward" className="flex flex-col space-y-1">
-                <span>Auto Carry Forward</span>
-                <span className="font-normal text-xs text-muted-foreground">
-                  Copy notes and time from previous entry
-                </span>
-              </Label>
-              <Switch
-                id="auto-carry-forward"
-                checked={formData.autoCarryForward}
-                onCheckedChange={(checked) => setFormData({ ...formData, autoCarryForward: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between space-x-2">
-              <Label htmlFor="is-paused" className="flex flex-col space-y-1">
-                <span>Pause Task</span>
-                <span className="font-normal text-xs text-muted-foreground">
-                  Hide checks and pause streaks
-                </span>
-              </Label>
-              <Switch
-                id="is-paused"
-                checked={formData.isPaused}
-                onCheckedChange={(checked) => setFormData({ ...formData, isPaused: checked })}
-              />
-            </div>
-          </div>
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <div className="flex justify-end gap-3 pt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={!isOnline}>
-              {editTask ? 'Save Changes' : 'Create Task'}
+              {editTask ? "Save Changes" : "Create Task"}
             </Button>
           </div>
           {!isOnline && (
