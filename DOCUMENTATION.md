@@ -20,16 +20,16 @@ A production-ready, frontend-only web application for planning long-range tasks 
 ## Overview
 
 TaskFlow is a personal productivity app that helps users:
-- Create long-range tasks with date ranges
+- Create long-range tasks and ongoing routines
 - Track daily progress on each task
 - Visualize completion rates and consistency
 - Build habits through streak tracking
 
 **Key Principles:**
-- 100% Frontend - No backend required
-- Local-first - All data stored in browser localStorage
-- Privacy-focused - Data never leaves your device
-- Offline-capable - Works without internet connection
+- Cloud-First - Secure synchronization via Supabase
+- Seamless Experience - Optimistic updates for snappy UI
+- Privacy-focused - User-authenticated data access
+- Mobile Responsive - Works on any device
 
 ---
 
@@ -37,28 +37,36 @@ TaskFlow is a personal productivity app that helps users:
 
 ### Task Management
 
-#### Creating Tasks
-- **Task Name**: Required, descriptive name for the task
+#### Creating Tasks & Routines
+- **Type**: Choose between **Task** (deadline-based) or **Routine** (habit-based)
+- **Task Name**: Required, descriptive name
 - **Category**: Choose from predefined categories or create custom
   - Digital Twin
   - Hacking
   - Math
   - Custom (with custom label)
-- **Date Range**: Start and end date (YYYY-MM-DD format)
+- **Date Range**: 
+  - Start Date: Required
+  - End Date: Reviewable for Tasks, Optional ("No End Date") for Routines
+- **Repeat Pattern**: Flexible recurrence options
+  - Daily (Every day)
+  - Weekdays (Mon-Fri)
+  - Weekends (Sat-Sun)
+  - Custom Days (Select specific days)
 - **Priority**: Low, Medium, or High
 - **Color Coding**: Automatic based on category
 
 #### Task Operations
-- **Create**: Add new tasks via the Tasks page
-- **Edit**: Modify task details (name, dates, category, priority)
+- **Create**: Add new tasks or routines via the Tasks page
+- **Edit**: Modify details (name, dates, type, category, priority)
 - **Delete**: Remove tasks with confirmation dialog
 - **Search**: Find tasks by name or category
-- **Filter**: Filter by category
+- **Filter**: Filter by Category or Type (Task vs Routine)
 - **Sort**: Order by newest, oldest, name, priority, or progress
 
 ### Daily Task Tracking
 
-Each task automatically generates daily entries for every date in its range.
+Each task/routine automatically generates daily entries for every active date in its range.
 
 #### Daily Task States
 | Status | Description | Visual |
@@ -67,9 +75,10 @@ Each task automatically generates daily entries for every date in its range.
 | Partial | Partially completed | ◐ Blue |
 | Skipped | Intentionally skipped | ✗ Amber |
 | Pending | Not yet addressed | ○ Gray |
+| Saved the Day | High-effort completion | 🛡️ Blue |
 
 #### Additional Daily Fields
-- **Time Spent**: Optional minutes tracking
+- **Time Spent**: Optional minutes tracking (with built-in timer)
 - **Notes**: Optional text notes per day
 
 ---
@@ -168,15 +177,20 @@ Data management and app information.
 
 ## Data Model
 
+## Data Model
+
 ### Task Object
 ```typescript
 interface Task {
   id: string;              // Unique identifier (UUID)
   name: string;            // Task name
+  type: 'task' | 'routine'; // Distinction between taskTypes
   category: TaskCategory;  // 'digital-twin' | 'hacking' | 'math' | 'custom'
   customCategory?: string; // Custom category name (if category is 'custom')
   startDate: string;       // YYYY-MM-DD format
-  endDate: string;         // YYYY-MM-DD format
+  endDate: string | null;  // YYYY-MM-DD format, or null for ongoing routines
+  dayPattern: DayPattern;  // 'daily', 'weekdays', 'weekends', 'custom'
+  customDays?: number[];   // Array of 0-6 (Sun-Sat) for 'custom' pattern
   priority?: 'low' | 'medium' | 'high';
   createdAt: string;       // ISO timestamp
   updatedAt: string;       // ISO timestamp
@@ -188,18 +202,9 @@ interface Task {
 interface DailyProgress {
   taskId: string;          // Reference to parent task
   date: string;            // YYYY-MM-DD format
-  status: TaskStatus;      // 'done' | 'skipped' | 'partial' | 'pending'
+  status: TaskStatus;      // 'done' | 'skipped' | 'partial' | 'pending' | 'saved-the-day'
   timeSpent?: number;      // Minutes spent (optional)
   notes?: string;          // Daily notes (optional)
-}
-```
-
-### App Data Structure
-```typescript
-interface AppData {
-  tasks: Task[];
-  dailyProgress: Record<string, DailyProgress>; // Key: "taskId-date"
-  version: string;
 }
 ```
 
@@ -207,17 +212,14 @@ interface AppData {
 
 ## Storage & Persistence
 
-### Local Storage
-- **Key**: `task-planner-data`
-- **Format**: JSON string
-- **Auto-save**: On every state change
-- **Auto-load**: On app initialization
+### Cloud Storage (Supabase)
+- **Primary Source**: Uses Supabase PostgreSQL database
+- **Authentication**: Required for data persistence
+- **Syncing**: Real-time sync when online
+- **Fallback**: Graceful error handling for connection issues
 
-### Data Characteristics
-- Survives page refresh
-- Survives browser restart
-- Device-specific (not synced)
-- No size limit concerns for typical usage
+### Note on Persistence
+This application currently relies on authenticated sessions for data storage. There is no local-only persistence for anonymous users; data will be lost on page refresh if not logged in.
 
 ---
 
@@ -226,37 +228,37 @@ interface AppData {
 ### Streak Calculation
 - **Current Streak**: Consecutive days ending today where ALL active tasks were marked "done"
 - **Longest Streak**: Maximum streak within selected time period
-- Days with no active tasks are skipped (not counted as breaks)
+- Days with no active tasks are auto-skipped (not counted as breaks)
 
 ### Progress Metrics
-- **Task Progress**: `(completed days / total days up to today) × 100`
+- **Task Progress**: `(completed days / total active days) × 100`
 - **Category Progress**: Aggregated across all tasks in category
 - **Overall Completion**: Weighted by task-days
 
 ### Time Tracking
 - Per-task per-day optional minutes
+- Built-in timer for real-time tracking
 - Aggregated to hours in analytics
-- Displayed in stats cards
 
 ---
 
 ## Data Management
 
+### Cloud Sync
+Data is automatically synced to the cloud. No manual save is required.
+
 ### Export
 - Downloads complete app data as JSON
 - Filename: `taskflow-backup-YYYY-MM-DD.json`
 - Includes all tasks and progress
-- Human-readable format
 
 ### Import
 - Upload previously exported JSON file
-- Validates data structure
-- Warning before overwriting existing data
-- Replaces all current data
+- Replaces current cloud data with backup contents
 
 ### Clear Data
-- Requires confirmation
-- Permanently deletes all tasks and progress
+- Dangerous operation
+- Permanently deletes all data from cloud account
 - Cannot be undone
 
 ---
@@ -268,6 +270,7 @@ interface AppData {
 | React 18 | UI Framework |
 | TypeScript | Type Safety |
 | Vite | Build Tool |
+| Supabase | Database & Auth |
 | Tailwind CSS | Styling |
 | shadcn/ui | UI Components |
 | Recharts | Charts & Graphs |

@@ -136,6 +136,9 @@ export const TaskProvider: React.FC<{ children: React.ReactNode }> = ({
   // Load cloud data when user logs in
   useEffect(() => {
     const fetchCloudData = async () => {
+      // Clear any legacy local storage data to prevent conflicts
+      clearAppData();
+
       if (!user) {
         dispatch({ type: "CLEAR_DATA" });
         return;

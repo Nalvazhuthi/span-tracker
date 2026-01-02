@@ -48,7 +48,7 @@ const Tasks: React.FC = () => {
 
   // Calculate stats
   const stats = useMemo(() => {
-    const active = tasks.filter((t) => t.endDate >= today).length;
+    const active = tasks.filter((t) => !t.endDate || t.endDate >= today).length;
     const completed = tasks.filter((t) => {
       const progress = getTaskProgress(t.id);
       return progress.percentage === 100;

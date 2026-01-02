@@ -6,15 +6,16 @@ Span Tracker is a comprehensive task management and habit tracking application d
 
 ### 1. Task Management
 *   **Create & Edit Tasks**: detailed task creation with support for:
+    *   **Type**: Distinguish between deadline-driven **Tasks** and habit-building **Routines**.
     *   **Categories**: Pre-defined (Digital Twin, Hacking, Math) and Custom categories with color coding.
-    *   **Scheduling**: Define specific Start and End dates.
+    *   **Scheduling**: Define specific Start Dates and optional End Dates (for ongoing Routines).
     *   **Recurrence Patterns**: flexible repetition options including:
         *   Every Day
         *   Weekdays Only
         *   Weekends Only
         *   Custom Days (select specific days of the week).
     *   **Priorities**: Low, Medium, High.
-*   **Task List**: View all tasks associated with their active dates.
+*   **Task List**: View all tasks associated with their active dates, filtered by type or category.
 
 ### 2. Daily Progress Tracking
 *   **Status Updates**: Mark tasks as:
@@ -22,7 +23,8 @@ Span Tracker is a comprehensive task management and habit tracking application d
     *   ⏭️ **Skipped**: Intentionally missed.
     *   🌗 **Partial**: Started but not finished.
     *   ⏳ **Pending**: Yet to be addressed.
-*   **Time Tracking**: Log the duration spent on each task (in minutes).
+    *   🛡️ **Saved the Day**: High-effort completion.
+*   **Time Tracking**: Log the duration spent on each task (in minutes) manually or via built-in timer.
 *   **Notes**: Attach specific notes to daily entries for context or reflection.
 
 ### 3. Analytics & Visualization
@@ -37,7 +39,7 @@ Span Tracker is a comprehensive task management and habit tracking application d
 ### 4. Data Management & Sync
 *   **Cloud Synchronization**: Seamlessly sync data across devices using Supabase integration.
     *   **Real-time Sync**: Changes are pushed to the cloud automatically when online.
-    *   **Offline Support**: Works offline with local storage and syncs when connection is restored (Upload/Replace strategies).
+    *   **Auth Requirement**: Data persistence currently requires user authentication.
 *   **Import/Export**:
     *   **Export**: Download your entire data history as a JSON file.
     *   **Import**: Restore data from backup files.
