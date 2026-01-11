@@ -222,7 +222,7 @@ const Index: React.FC = () => {
                   </span>
                   
                   {/* Status Indicator Dot */}
-                  <div className="h-1.5 w-1.5 rounded-full mt-1 transition-colors duration-300" 
+                  <div className="h-1.5 w-1.5 rounded-[1px] mt-1 transition-colors duration-300" 
                        style={{ 
                          backgroundColor: isSelected 
                            ? 'rgba(255,255,255,0.8)' 

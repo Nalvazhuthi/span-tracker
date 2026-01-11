@@ -148,7 +148,7 @@ export const ConsistencyCalendar: React.FC = () => {
   };
 
   return (
-    <div ref={containerRef} className="rounded-xl border border-border bg-card p-4 sm:p-6">
+    <div ref={containerRef} className="rounded-xl border border-border bg-card p-4 sm:p-6 overflow-x-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h3 className="text-lg font-semibold">Consistency</h3>
         <Select value={timeRange} onValueChange={(v) => setTimeRange(v)}>
@@ -221,7 +221,7 @@ export const ConsistencyCalendar: React.FC = () => {
                       <TooltipTrigger asChild>
                         <div
                           className={cn(
-                            'rounded-sm transition-colors cursor-default',
+                            'rounded-[3px] transition-colors cursor-default',
                             getLevelClass(day.level),
                             day.isToday && 'ring-1 ring-primary ring-offset-1 ring-offset-card'
                           )}
@@ -249,11 +249,11 @@ export const ConsistencyCalendar: React.FC = () => {
       <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-border text-xs text-muted-foreground">
         <span>Less</span>
         <div className="flex gap-1">
-          <div className="w-3 h-3 rounded-sm bg-muted" />
-          <div className="w-3 h-3 rounded-sm bg-contribution-level-1" />
-          <div className="w-3 h-3 rounded-sm bg-contribution-level-2" />
-          <div className="w-3 h-3 rounded-sm bg-contribution-level-3" />
-          <div className="w-3 h-3 rounded-sm bg-contribution-level-4" />
+          <div className="w-3 h-3 rounded-[1px] bg-muted" />
+          <div className="w-3 h-3 rounded-[1px] bg-contribution-level-1" />
+          <div className="w-3 h-3 rounded-[1px] bg-contribution-level-2" />
+          <div className="w-3 h-3 rounded-[1px] bg-contribution-level-3" />
+          <div className="w-3 h-3 rounded-[1px] bg-contribution-level-4" />
         </div>
         <span>More</span>
       </div>

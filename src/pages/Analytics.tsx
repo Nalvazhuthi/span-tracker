@@ -123,9 +123,9 @@ const Analytics: React.FC = () => {
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 bg-card/50 p-1 rounded-lg border border-border/50 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2 bg-card/50 p-1 rounded-lg border border-border/50 shadow-sm">
                 <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
-                  <SelectTrigger className="w-[140px] border-0 bg-transparent focus:ring-0">
+                  <SelectTrigger className="w-full sm:w-[140px] border-0 bg-transparent focus:ring-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -137,17 +137,17 @@ const Analytics: React.FC = () => {
                   </SelectContent>
                 </Select>
 
-                <div className="h-4 w-px bg-border" />
+                <div className="hidden sm:block h-4 w-px bg-border" />
 
-                <Tabs value={chartType} onValueChange={(v) => setChartType(v as ChartType)}>
-                  <TabsList className="h-8 bg-transparent p-0 gap-1">
-                    <TabsTrigger value="bar" className="px-2 h-7">
+                <Tabs value={chartType} onValueChange={(v) => setChartType(v as ChartType)} className="flex-1 sm:flex-none">
+                  <TabsList className="h-8 bg-transparent p-0 gap-1 w-full sm:w-auto">
+                    <TabsTrigger value="bar" className="flex-1 sm:flex-none px-2 h-7">
                       <BarChart2 className="h-4 w-4" />
                     </TabsTrigger>
-                    <TabsTrigger value="line" className="px-2 h-7">
+                    <TabsTrigger value="line" className="flex-1 sm:flex-none px-2 h-7">
                       <LineChart className="h-4 w-4" />
                     </TabsTrigger>
-                    <TabsTrigger value="area" className="px-2 h-7">
+                    <TabsTrigger value="area" className="flex-1 sm:flex-none px-2 h-7">
                       <AreaChart className="h-4 w-4" />
                     </TabsTrigger>
                   </TabsList>
