@@ -11,6 +11,15 @@ import { Task, CATEGORY_LABELS, TaskCategory } from '@/types/task';
 import { toast } from 'sonner';
 import { Plus, ListTodo, Search, Filter, SortAsc, Target, CheckCircle, Calendar, Grid3X3, List } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  BarChart3, 
+  CalendarDays, 
+  Clock, 
+  ListFilter, 
+  LayoutGrid, 
+  Search as SearchIcon,
+  SlidersHorizontal 
+} from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -155,105 +164,105 @@ const Tasks: React.FC = () => {
         {tasks.length > 0 && (
           <>
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2">
-                    <Target className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-4 dark:from-blue-950/20 dark:to-background dark:border-blue-900/50 transition-all hover:shadow-sm">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                    <Target className="h-4 w-4" />
+                    <span className="text-xs font-semibold uppercase tracking-wider">Total</span>
                   </div>
-                  <div>
-                    <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.total}</p>
-                    <p className="text-xs text-muted-foreground">Total</p>
-                  </div>
+                  <p className="text-3xl font-bold text-foreground mt-1">{stats.total}</p>
                 </div>
               </div>
-              <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="rounded-lg bg-status-partial-bg p-2">
-                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-status-partial" />
+              <div className="relative overflow-hidden rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-white p-4 dark:from-amber-950/20 dark:to-background dark:border-amber-900/50 transition-all hover:shadow-sm">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                    <Clock className="h-4 w-4" />
+                    <span className="text-xs font-semibold uppercase tracking-wider">Active</span>
                   </div>
-                  <div>
-                    <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.active}</p>
-                    <p className="text-xs text-muted-foreground">Active</p>
-                  </div>
+                  <p className="text-3xl font-bold text-foreground mt-1">{stats.active}</p>
                 </div>
               </div>
-              <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="rounded-lg bg-status-done-bg p-2">
-                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-status-done" />
+              <div className="relative overflow-hidden rounded-2xl border border-green-100 bg-gradient-to-br from-green-50 to-white p-4 dark:from-green-950/20 dark:to-background dark:border-green-900/50 transition-all hover:shadow-sm">
+                <div className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="text-xs font-semibold uppercase tracking-wider">Done</span>
                   </div>
-                  <div>
-                    <p className="text-lg sm:text-2xl font-bold text-foreground">{stats.completed}</p>
-                    <p className="text-xs text-muted-foreground">Done</p>
-                  </div>
+                  <p className="text-3xl font-bold text-foreground mt-1">{stats.completed}</p>
                 </div>
               </div>
             </div>
 
             {/* Filters & Search */}
-            <div className="flex flex-col gap-3 mb-6">
-              {/* Search */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search tasks..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+            <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md pb-4 pt-1 mb-2">
+               <div className="flex flex-col gap-4">
+                  {/* Search and Filters Row */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                     <div className="relative flex-1">
+                        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                           placeholder="Search tasks..."
+                           value={searchQuery}
+                           onChange={(e) => setSearchQuery(e.target.value)}
+                           className="pl-9 bg-card/50"
+                        />
+                     </div>
+                     
+                     <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
+                        <Select value={filterCategory} onValueChange={(v) => setFilterCategory(v as FilterCategory)}>
+                           <SelectTrigger className="w-[150px] bg-card/50">
+                              <ListFilter className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                              <SelectValue placeholder="Category" />
+                           </SelectTrigger>
+                           <SelectContent>
+                              <SelectItem value="all">All Categories</SelectItem>
+                              {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+                                 <SelectItem key={key} value={key}>
+                                    <div className="flex items-center gap-2">
+                                       <div className={cn('h-2 w-2 rounded-full', categoryColors[key as TaskCategory])} />
+                                       {label}
+                                    </div>
+                                 </SelectItem>
+                              ))}
+                           </SelectContent>
+                        </Select>
 
-              {/* Filter Controls */}
-              <div className="flex flex-wrap items-center gap-2">
-                {/* Category Filter */}
-                <Select value={filterCategory} onValueChange={(v) => setFilterCategory(v as FilterCategory)}>
-                  <SelectTrigger className="w-[140px] sm:w-[160px]">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        <div className="flex items-center gap-2">
-                          <div className={cn('h-2.5 w-2.5 rounded-full', categoryColors[key as TaskCategory])} />
-                          {label}
+                        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+                           <SelectTrigger className="w-[140px] bg-card/50">
+                              <SlidersHorizontal className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                              <SelectValue placeholder="Sort" />
+                           </SelectTrigger>
+                           <SelectContent>
+                              <SelectItem value="newest">Newest</SelectItem>
+                              <SelectItem value="oldest">Oldest</SelectItem>
+                              <SelectItem value="name">Name</SelectItem>
+                              <SelectItem value="priority">Priority</SelectItem>
+                              <SelectItem value="progress">Progress</SelectItem>
+                           </SelectContent>
+                        </Select>
+
+                        <div className="hidden sm:flex items-center border rounded-md bg-card/50 p-1">
+                           <Button
+                              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => setViewMode('grid')}
+                           >
+                              <LayoutGrid className="h-4 w-4" />
+                           </Button>
+                           <Button
+                              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => setViewMode('list')}
+                           >
+                              <List className="h-4 w-4" />
+                           </Button>
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                {/* Sort */}
-                <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-                  <SelectTrigger className="w-[130px] sm:w-[150px]">
-                    <SortAsc className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Sort" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest First</SelectItem>
-                    <SelectItem value="oldest">Oldest First</SelectItem>
-                    <SelectItem value="name">Name A-Z</SelectItem>
-                    <SelectItem value="priority">Priority</SelectItem>
-                    <SelectItem value="progress">Progress</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* View Mode - Desktop only */}
-                <div className="hidden sm:block ml-auto">
-                  <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-                    <TabsList className="h-9">
-                      <TabsTrigger value="grid" className="px-3">
-                        <Grid3X3 className="h-4 w-4" />
-                      </TabsTrigger>
-                      <TabsTrigger value="list" className="px-3">
-                        <List className="h-4 w-4" />
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-              </div>
+                     </div>
+                  </div>
+               </div>
             </div>
 
             {/* Results Count */}
@@ -294,14 +303,17 @@ const Tasks: React.FC = () => {
                 
                 return (
                   <div key={monthKey}>
-                    <h3 className="text-lg font-semibold text-muted-foreground mb-4 sticky top-0 bg-background/95 backdrop-blur py-2 z-10 border-b">
-                      {monthName}
-                    </h3>
+                    <div className="flex items-center gap-3 mb-4 mt-2">
+                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider bg-background/50 px-2 py-1 rounded-md">
+                          {monthName}
+                       </h3>
+                       <div className="h-px bg-border flex-1" />
+                    </div>
                     <div className={cn(
                       'gap-4',
                       viewMode === 'grid' 
                         ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-                        : 'flex flex-col'
+                        : 'flex flex-col space-y-3'
                     )}>
                       {monthTasks.map((task) => (
                         <TaskCard

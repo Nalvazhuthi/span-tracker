@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { useTasks } from '@/context/TaskContext';
-import { format, subWeeks, subMonths, subYears, eachDayOfInterval, parseISO, getDay, startOfWeek } from 'date-fns';
+import { format, eachDayOfInterval, parseISO, getDay, startOfWeek, startOfYear, endOfYear, getYear } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { getToday, formatDate } from '@/utils/dateUtils';
 import { generateProgressKey } from '@/utils/storageUtils';
@@ -8,20 +8,12 @@ import { isTaskActiveOnDate } from '@/utils/taskDayUtils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-type TimeRange = '1w' | '1m' | '3m' | '6m' | '1y';
-
-const timeRangeOptions: { value: TimeRange; label: string }[] = [
-  { value: '1w', label: 'Last Week' },
-  { value: '1m', label: 'Last Month' },
-  { value: '3m', label: '3 Months' },
-  { value: '6m', label: '6 Months' },
-  { value: '1y', label: 'Last Year' },
-];
+const currentYear = new Date().getFullYear();
 
 export const ConsistencyCalendar: React.FC = () => {
   const { tasks, dailyProgress } = useTasks();
   const today = getToday();
-  const [timeRange, setTimeRange] = useState<TimeRange>('1y');
+  const [timeRange, setTimeRange] = useState<string>(String(currentYear));
   const containerRef = useRef<HTMLDivElement>(null);
   const [cellSize, setCellSize] = useState(12);
   const [cellGap, setCellGap] = useState(2);
@@ -36,14 +28,8 @@ export const ConsistencyCalendar: React.FC = () => {
 
       // Calculate number of weeks based on time range
       let numWeeks: number;
-      switch (timeRange) {
-        case '1w': numWeeks = 2; break;
-        case '1m': numWeeks = 5; break;
-        case '3m': numWeeks = 14; break;
-        case '6m': numWeeks = 27; break;
-        case '1y': numWeeks = 53; break;
-        default: numWeeks = 14;
-      }
+      // All year views show ~53 weeks
+      numWeeks = 53;
 
       // Calculate optimal cell size to fit all weeks
       const minGap = 2;
@@ -62,29 +48,24 @@ export const ConsistencyCalendar: React.FC = () => {
     return () => window.removeEventListener('resize', calculateCellSize);
   }, [timeRange]);
 
-  const { calendarData, weeks, monthLabels } = useMemo(() => {
-    const endDate = parseISO(today);
-    let startDate: Date;
-
-    switch (timeRange) {
-      case '1w':
-        startDate = subWeeks(endDate, 1);
-        break;
-      case '1m':
-        startDate = subMonths(endDate, 1);
-        break;
-      case '3m':
-        startDate = subMonths(endDate, 3);
-        break;
-      case '6m':
-        startDate = subMonths(endDate, 6);
-        break;
-      case '1y':
-        startDate = subYears(endDate, 1);
-        break;
-      default:
-        startDate = subMonths(endDate, 3);
+  const years = useMemo(() => {
+    if (tasks.length === 0) return [currentYear];
+    const startYears = tasks.map(t => new Date(t.startDate).getFullYear());
+    const minYear = Math.min(...startYears, currentYear);
+    const yearsArr = [];
+    for (let y = currentYear; y >= minYear; y--) {
+      yearsArr.push(y);
     }
+    return yearsArr;
+  }, [tasks]);
+
+  const { calendarData, weeks, monthLabels } = useMemo(() => {
+    let startDate: Date;
+    let endDate: Date;
+
+    const year = parseInt(timeRange);
+    startDate = startOfYear(new Date(year, 0, 1));
+    endDate = endOfYear(new Date(year, 0, 1));
 
     // Align to start of week (Sunday)
     const alignedStart = startOfWeek(startDate);
@@ -170,14 +151,14 @@ export const ConsistencyCalendar: React.FC = () => {
     <div ref={containerRef} className="rounded-xl border border-border bg-card p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <h3 className="text-lg font-semibold">Consistency</h3>
-        <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
+        <Select value={timeRange} onValueChange={(v) => setTimeRange(v)}>
           <SelectTrigger className="w-[140px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {timeRangeOptions.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
+            {years.map((year) => (
+              <SelectItem key={year} value={String(year)}>
+                {year}
               </SelectItem>
             ))}
           </SelectContent>

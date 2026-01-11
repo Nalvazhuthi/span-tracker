@@ -3,14 +3,16 @@ import { useTasks } from '@/context/TaskContext';
 import { Layout } from '@/components/Layout';
 import { DailyTaskItem } from '@/components/DailyTaskItem';
 import { EmptyState } from '@/components/EmptyState';
-import { getToday, formatDisplayDate, getWeekday, formatDate, getDaysInRange } from '@/utils/dateUtils';
-import { CalendarDays, Plus, ChevronLeft, ChevronRight, Sparkles, Target, Clock, TrendingUp, CalendarCheck } from 'lucide-react';
+import { getToday, formatDisplayDate, getWeekday, formatDate } from '@/utils/dateUtils';
+import { CalendarDays, Plus, ChevronLeft, ChevronRight, Sparkles, Target, Clock, TrendingUp, CalendarCheck, Sun, Moon, CloudSun, Sunset } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Task, CATEGORY_LABELS, TaskCategory } from '@/types/task';
+import { CATEGORY_LABELS, TaskCategory } from '@/types/task';
 import { cn } from '@/lib/utils';
-import { addDays, subDays, parseISO, format, isToday, isTomorrow, isThisWeek } from 'date-fns';
+import { addDays, subDays, parseISO, format } from 'date-fns';
 import { generateProgressKey } from '@/utils/storageUtils';
+import { CircularProgress } from '@/components/ui/CircularProgress';
+
 
 const categoryColors: Record<TaskCategory, string> = {
   'digital-twin': 'bg-category-digital-twin',
@@ -19,6 +21,17 @@ const categoryColors: Record<TaskCategory, string> = {
   'custom': 'bg-category-custom',
 };
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 5) return { text: 'Good Night', icon: Moon };
+  if (hour < 12) return { text: 'Good Morning', icon: Sun };
+  if (hour < 17) return { text: 'Good Afternoon', icon: CloudSun };
+  if (hour < 21) return { text: 'Good Evening', icon: Sunset };
+  return { text: 'Good Night', icon: Moon };
+};
+
+// CircularProgress removed (imported from components)
+
 const Index: React.FC = () => {
   const { tasks, getTasksForDate, dailyProgress, isLoading } = useTasks();
   const realToday = getToday();
@@ -26,6 +39,8 @@ const Index: React.FC = () => {
   
   const tasksForSelectedDate = getTasksForDate(selectedDate);
   const isViewingToday = selectedDate === realToday;
+  const greeting = getGreeting();
+  const GreetingIcon = greeting.icon;
 
   // Calculate quick stats for today
   const todayStats = useMemo(() => {
@@ -44,14 +59,14 @@ const Index: React.FC = () => {
 
   // Get upcoming tasks (next 7 days)
   const upcomingTasks = useMemo(() => {
-    const upcoming: { date: string; tasks: Task[]; label: string }[] = [];
+    const upcoming: { date: string; tasks: any[]; label: string }[] = [];
     
     for (let i = 1; i <= 7; i++) {
       const date = formatDate(addDays(parseISO(realToday), i));
       const dayTasks = getTasksForDate(date);
       
       if (dayTasks.length > 0) {
-        let label = format(parseISO(date), 'EEEE, MMM d');
+        let label = format(parseISO(date), 'EEE, MMM d');
         if (i === 1) label = 'Tomorrow';
         
         upcoming.push({ date, tasks: dayTasks, label });
@@ -93,212 +108,225 @@ const Index: React.FC = () => {
 
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto">
-        {/* Quick Stats - Only show when viewing today */}
+      <div className="max-w-5xl mx-auto space-y-8">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+           <div>
+             <div className="flex items-center gap-2 text-muted-foreground mb-1">
+               <GreetingIcon className="h-4 w-4" />
+               <span className="text-sm font-medium">{greeting.text}</span>
+             </div>
+             <h1 className="text-3xl font-bold tracking-tight">Today's Focus</h1>
+             <p className="text-muted-foreground mt-1">
+               {formatDisplayDate(getToday())}
+             </p>
+           </div>
+           
+           <div className="flex items-center gap-2">
+             <Button asChild>
+               <Link to="/tasks">
+                 <Plus className="h-4 w-4 mr-2" />
+                 New Task
+               </Link>
+             </Button>
+           </div>
+        </div>
+
+        {/* Hero Quick Stats - Today Only */}
         {isViewingToday && tasks.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="rounded-xl border border-border bg-card p-3 sm:p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <Target className="h-4 w-4 text-primary" />
-                <span className="text-xl sm:text-2xl font-bold text-foreground">{todayStats.total}</span>
+          <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-6 sm:p-8 shadow-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-8">
+              <div className="flex-1 text-center sm:text-left">
+                 <h2 className="text-xl font-semibold mb-2">You're making progress!</h2>
+                 <p className="text-muted-foreground mb-6 max-w-md">
+                   {todayStats.remaining === 0 
+                     ? "All tasks completed! Amazing work today."
+                     : `You have ${todayStats.remaining} tasks remaining for today. Keep the momentum going!`}
+                 </p>
+                 <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
+                   <div className="flex items-center gap-2 bg-status-done-bg/50 px-3 py-1.5 rounded-full border border-status-done/20">
+                     <Sparkles className="h-4 w-4 text-status-done" />
+                     <span className="text-sm font-medium">{todayStats.completed} Completed</span>
+                   </div>
+                   <div className="flex items-center gap-2 bg-status-skipped-bg/50 px-3 py-1.5 rounded-full border border-status-skipped/20">
+                     <Target className="h-4 w-4 text-status-skipped" />
+                     <span className="text-sm font-medium">{todayStats.total} Total</span>
+                   </div>
+                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Today's Tasks</p>
-            </div>
-            <div className="rounded-xl border border-border bg-status-done-bg p-3 sm:p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <Sparkles className="h-4 w-4 text-status-done" />
-                <span className="text-xl sm:text-2xl font-bold text-status-done">{todayStats.completed}</span>
+              
+              <div className="flex items-center gap-4">
+                 <div className="flex flex-col items-center">
+                  <CircularProgress completed={todayStats.completed} total={todayStats.total} size={88} />
+                   <span className="text-xs text-muted-foreground mt-2 font-medium">Daily Goal</span>
+                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Completed</p>
-            </div>
-            <div className="rounded-xl border border-border bg-status-skipped-bg p-3 sm:p-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-1">
-                <Clock className="h-4 w-4 text-status-skipped" />
-                <span className="text-xl sm:text-2xl font-bold text-status-skipped">{todayStats.remaining}</span>
-              </div>
-              <p className="text-xs text-muted-foreground">Remaining</p>
             </div>
           </div>
         )}
 
-        {/* Date Navigation Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-              onClick={() => navigateDate('prev')}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CalendarDays className="h-4 w-4 shrink-0" />
-                <span>{getWeekday(selectedDate)}</span>
-                {isViewingToday && (
-                  <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
-                    Today
-                  </span>
-                )}
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground truncate">
-                {formatDisplayDate(selectedDate)}
-              </h1>
-            </div>
-
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-9 w-9 shrink-0"
-              onClick={() => navigateDate('next')}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {!isViewingToday && (
-              <Button variant="outline" size="sm" onClick={goToToday}>
-                Go to Today
-              </Button>
-            )}
-            <Button asChild size="sm">
-              <Link to="/tasks">
-                <Plus className="h-4 w-4 mr-1" />
-                <span className="hidden sm:inline">New Task</span>
-                <span className="sm:hidden">Add</span>
-              </Link>
-            </Button>
-          </div>
-        </div>
-
-        {/* Today's Tasks */}
+        {/* Date Navigation Strip */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <CalendarCheck className="h-5 w-5 text-primary" />
-              {isViewingToday ? "Today's Tasks" : "Tasks for this day"}
+              <span>{format(parseISO(selectedDate), 'MMMM yyyy')}</span>
             </h2>
-            <span className="text-sm text-muted-foreground">
-              {tasksForSelectedDate.length} task{tasksForSelectedDate.length !== 1 ? 's' : ''}
-            </span>
+            <div className="flex gap-2">
+               {!isViewingToday && (
+                  <Button variant="ghost" size="sm" onClick={goToToday} className="text-xs h-7">
+                    Back to Today
+                  </Button>
+                )}
+               <div className="flex gap-1 bg-muted/50 p-1 rounded-lg">
+                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => navigateDate('prev')}>
+                   <ChevronLeft className="h-4 w-4" />
+                 </Button>
+                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => navigateDate('next')}>
+                   <ChevronRight className="h-4 w-4" />
+                 </Button>
+               </div>
+            </div>
           </div>
 
-          {tasksForSelectedDate.length > 0 ? (
-            <div className="space-y-3">
-              {tasksForSelectedDate.map((task) => (
-                <DailyTaskItem key={task.id} task={task} date={selectedDate} />
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-border bg-muted/30 p-8 text-center">
-              <CalendarDays className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-              <h3 className="font-medium text-foreground mb-1">No Tasks Scheduled</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                {isViewingToday 
-                  ? "You're all clear for today! Create a task to get started."
-                  : "No tasks scheduled for this date."}
-              </p>
-              <Button asChild variant="outline" size="sm">
-                <Link to="/tasks">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Task
-                </Link>
-              </Button>
-            </div>
-          )}
+          <div className="grid grid-cols-7 gap-2">
+            {[-3, -2, -1, 0, 1, 2, 3].map((offset) => {
+              const dateObj = addDays(parseISO(selectedDate), offset);
+              const dateStr = formatDate(dateObj);
+              const isSelected = offset === 0;
+              const isToday = dateStr === realToday;
+              
+              // Calculate status for dots
+              const tasksOnDate = getTasksForDate(dateStr);
+              const completedCount = tasksOnDate.filter(t => dailyProgress[generateProgressKey(t.id, dateStr)]?.status === 'done').length;
+              const hasTasks = tasksOnDate.length > 0;
+              const allDone = hasTasks && completedCount === tasksOnDate.length;
+              const partialDone = hasTasks && completedCount > 0 && !allDone;
+              
+              return (
+                <button
+                  key={offset}
+                  onClick={() => setSelectedDate(dateStr)}
+                  className={cn(
+                    "flex flex-col items-center justify-center p-2 rounded-xl transition-all duration-200 relative",
+                    isSelected 
+                      ? "bg-primary text-primary-foreground shadow-lg scale-110 z-10" 
+                      : "bg-card hover:bg-muted/80 text-muted-foreground hover:scale-105",
+                    isToday && !isSelected && "border border-primary/50"
+                  )}
+                >
+                  <span className="text-[10px] font-medium uppercase opacity-80">{format(dateObj, 'EEE')}</span>
+                  <span className={cn("text-lg font-bold", isSelected ? "text-primary-foreground" : "text-foreground")}>
+                    {format(dateObj, 'd')}
+                  </span>
+                  
+                  {/* Status Indicator Dot */}
+                  <div className="h-1.5 w-1.5 rounded-full mt-1 transition-colors duration-300" 
+                       style={{ 
+                         backgroundColor: isSelected 
+                           ? 'rgba(255,255,255,0.8)' 
+                           : allDone ? 'var(--status-done)' 
+                           : partialDone ? 'var(--status-partial)' 
+                           : hasTasks ? 'var(--status-pending)' 
+                           : 'transparent'
+                       }} 
+                  />
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Starting Soon Section */}
-        {isViewingToday && startingSoon.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-              <TrendingUp className="h-5 w-5 text-status-partial" />
-              Starting Soon
-            </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {startingSoon.map((task) => {
-                const categoryLabel = task.category === 'custom' ? task.customCategory : CATEGORY_LABELS[task.category];
-                return (
-                  <div
-                    key={task.id}
-                    className="rounded-xl border border-border bg-card p-4 transition-all hover:shadow-md"
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className={cn('h-2.5 w-2.5 rounded-full', categoryColors[task.category])} />
-                      <span className="text-xs text-muted-foreground">{categoryLabel}</span>
-                    </div>
-                    <h3 className="font-medium text-foreground mb-1 line-clamp-1">{task.name}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Starts {format(parseISO(task.startDate), 'EEEE, MMM d')}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Upcoming Tasks Section */}
-        {isViewingToday && upcomingTasks.length > 0 && (
-          <div>
-            <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
-              <CalendarDays className="h-5 w-5 text-category-math" />
-              Upcoming Week
-            </h2>
-            <div className="space-y-4">
-              {upcomingTasks.slice(0, 4).map(({ date, tasks: dayTasks, label }) => (
-                <div
-                  key={date}
-                  className="rounded-xl border border-border bg-card overflow-hidden"
-                >
-                  <button
-                    onClick={() => setSelectedDate(date)}
-                    className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors text-left"
-                  >
-                    <div>
-                      <h3 className="font-medium text-foreground">{label}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {dayTasks.length} task{dayTasks.length !== 1 ? 's' : ''}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex -space-x-1">
-                        {dayTasks.slice(0, 3).map((task, i) => (
-                          <div
-                            key={task.id}
-                            className={cn(
-                              'h-6 w-6 rounded-full border-2 border-card flex items-center justify-center text-xs font-medium text-primary-foreground',
-                              categoryColors[task.category]
-                            )}
-                            style={{ zIndex: 3 - i }}
-                          >
-                            {task.name.charAt(0).toUpperCase()}
-                          </div>
-                        ))}
-                        {dayTasks.length > 3 && (
-                          <div className="h-6 w-6 rounded-full border-2 border-card bg-muted flex items-center justify-center text-xs font-medium text-muted-foreground">
-                            +{dayTasks.length - 3}
-                          </div>
-                        )}
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </button>
+          <div className="bg-card/50 rounded-2xl border border-border/50 p-1 min-h-[300px]">
+             {tasksForSelectedDate.length > 0 ? (
+                <div className="space-y-3 p-2">
+                   {tasksForSelectedDate.map((task, index) => (
+                     <div 
+                        key={task.id} 
+                        className="animate-in fade-in slide-in-from-bottom-3 duration-500"
+                        style={{ animationDelay: `${index * 75}ms` }}
+                     >
+                        <DailyTaskItem task={task} date={selectedDate} />
+                     </div>
+                   ))}
                 </div>
-              ))}
-            </div>
+             ) : (
+                <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                  <div className="bg-muted/50 p-4 rounded-full mb-4">
+                    <CalendarDays className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-medium text-foreground">No tasks scheduled</h3>
+                  <p className="text-sm text-muted-foreground max-w-xs mt-1">
+                    {isViewingToday 
+                      ? "Enjoy your free time or add a new task to get productive!" 
+                      : `No tasks scheduled for ${format(parseISO(selectedDate), 'MMMM do')}.`}
+                  </p>
+                  <Button asChild variant="outline" className="mt-6">
+                    <Link to="/tasks">Add Task</Link>
+                  </Button>
+                </div>
+             )}
           </div>
+
+
+        {/* Start Soon & Upcoming Grid */}
+        {(startingSoon.length > 0 || upcomingTasks.length > 0) && (
+           <div className="grid lg:grid-cols-2 gap-8">
+              {/* Starting Soon */}
+              {startingSoon.length > 0 && (
+                <div>
+                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                     <TrendingUp className="h-4 w-4" /> Starting Soon
+                   </h3>
+                   <div className="space-y-3">
+                      {startingSoon.map((task) => (
+                        <div key={task.id} className="flex items-center gap-3 bg-card p-3 rounded-xl border border-border">
+                          <div className={cn('h-2 w-2 rounded-full shrink-0', categoryColors[task.category])} />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{task.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              Starts {format(parseISO(task.startDate), 'EEE, MMM d')}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                   </div>
+                </div>
+              )}
+
+              {/* Upcoming Week Horizontal Scroll / Grid */}
+              {upcomingTasks.length > 0 && (
+                <div className={cn(startingSoon.length === 0 && "lg:col-span-2")}>
+                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4 flex items-center gap-2">
+                     <CalendarDays className="h-4 w-4" /> Upcoming Week
+                   </h3>
+                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {upcomingTasks.map(({ date, tasks: dayTasks, label }) => (
+                         <div 
+                           key={date}
+                           onClick={() => setSelectedDate(date)}
+                           className="bg-card hover:bg-muted/50 border border-border rounded-xl p-3 cursor-pointer transition-all hover:scale-[1.02] flex flex-col justify-between h-24"
+                         >
+                            <div className="text-xs font-medium text-muted-foreground">{label}</div>
+                            <div>
+                               <div className="text-2xl font-bold">{dayTasks.length}</div>
+                               <div className="text-[10px] text-muted-foreground uppercase">Tasks</div>
+                            </div>
+                         </div>
+                      ))}
+                   </div>
+                </div>
+              )}
+           </div>
         )}
 
-        {/* Empty State for New Users */}
+        {/* Empty State (Global) */}
         {tasks.length === 0 && (
           <EmptyState
             icon={Sparkles}
             title="Welcome to TaskFlow!"
-            description="Create your first long-range task to start tracking your daily progress and build consistent habits."
+            description="Create your first long-range task to start tracking your daily progress."
             action={
               <Button asChild>
                 <Link to="/tasks">

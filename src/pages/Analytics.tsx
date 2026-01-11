@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { useTasks } from '@/context/TaskContext';
 import { Layout } from '@/components/Layout';
 import { StatsCards } from '@/components/StatsCards';
-import { ProgressChart } from '@/components/ProgressChart';
-import { CategoryProgress } from '@/components/CategoryProgress';
 import { ConsistencyCalendar } from '@/components/ConsistencyCalendar';
 import { DailyTrendChart } from '@/components/DailyTrendChart';
 import { StreakDisplay } from '@/components/StreakDisplay';
@@ -12,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
-import { BarChart3, Plus, BarChart2, LineChart, AreaChart } from 'lucide-react';
+import { BarChart3, Plus, BarChart2, LineChart, AreaChart, CalendarRange, Layers } from 'lucide-react';
 import { subDays, format } from 'date-fns';
 import { getToday, formatDate } from '@/utils/dateUtils';
 
@@ -113,46 +111,49 @@ const Analytics: React.FC = () => {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header with Controls */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Progress</h1>
-            <p className="text-muted-foreground mt-1">
-              {format(new Date(dateRange.start), 'MMM d')} - {format(new Date(dateRange.end), 'MMM d, yyyy')}
-            </p>
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Time Range Selector */}
-            <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {timeRangeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Sticky Header with Controls */}
+        <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md pb-4 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">Analytics</h1>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                  <CalendarRange className="h-3.5 w-3.5" />
+                  <span>{format(new Date(dateRange.start), 'MMM d')} - {format(new Date(dateRange.end), 'MMM d, yyyy')}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 bg-card/50 p-1 rounded-lg border border-border/50 shadow-sm">
+                <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
+                  <SelectTrigger className="w-[140px] border-0 bg-transparent focus:ring-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {timeRangeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-            {/* Chart Type Selector */}
-            <Tabs value={chartType} onValueChange={(v) => setChartType(v as ChartType)}>
-              <TabsList className="h-9">
-                <TabsTrigger value="bar" className="px-3">
-                  <BarChart2 className="h-4 w-4" />
-                </TabsTrigger>
-                <TabsTrigger value="line" className="px-3">
-                  <LineChart className="h-4 w-4" />
-                </TabsTrigger>
-                <TabsTrigger value="area" className="px-3">
-                  <AreaChart className="h-4 w-4" />
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+                <div className="h-4 w-px bg-border" />
+
+                <Tabs value={chartType} onValueChange={(v) => setChartType(v as ChartType)}>
+                  <TabsList className="h-8 bg-transparent p-0 gap-1">
+                    <TabsTrigger value="bar" className="px-2 h-7">
+                      <BarChart2 className="h-4 w-4" />
+                    </TabsTrigger>
+                    <TabsTrigger value="line" className="px-2 h-7">
+                      <LineChart className="h-4 w-4" />
+                    </TabsTrigger>
+                    <TabsTrigger value="area" className="px-2 h-7">
+                      <AreaChart className="h-4 w-4" />
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+           </div>
         </div>
 
         {/* Stats Cards */}
@@ -161,25 +162,18 @@ const Analytics: React.FC = () => {
         {/* Charts Grid */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Daily Trend Chart */}
-          <div className="rounded-xl border border-border bg-card p-6">
-            <h3 className="text-lg font-semibold mb-4">Daily Completion Trend</h3>
+          <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-card/50 p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+               <h3 className="text-lg font-semibold flex items-center gap-2">
+                 <Layers className="h-5 w-5 text-primary" />
+                 Daily Trend
+               </h3>
+            </div>
             <DailyTrendChart chartType={chartType} dateRange={dateRange} />
           </div>
 
-          {/* Task Progress Chart */}
-          <div className="rounded-xl border border-border bg-card p-6">
-            <h3 className="text-lg font-semibold mb-4">Task Completion</h3>
-            <ProgressChart chartType={"bar"} dateRange={dateRange} />
-          </div>
-        </div>
-
-        {/* Second Row */}
-        <div className="grid gap-6 lg:grid-cols-2">
           {/* Streak Display */}
           <StreakDisplay dateRange={dateRange} />
-          
-          {/* Category Progress */}
-          <CategoryProgress />
         </div>
 
         {/* Calendar */}

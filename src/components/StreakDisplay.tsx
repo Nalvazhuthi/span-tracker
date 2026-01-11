@@ -145,32 +145,24 @@ export const StreakDisplay: React.FC<StreakDisplayProps> = ({ dateRange }) => {
     };
   }, [tasks, dailyProgress, dateRange]);
 
-  const getStreakEmoji = (streak: number) => {
-    if (streak >= 30) return '🏆';
-    if (streak >= 14) return '🔥';
-    if (streak >= 7) return '⚡';
-    if (streak >= 3) return '✨';
-    return '🌱';
-  };
-
   return (
     <div className="rounded-xl border border-border bg-card p-6">
       <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-        <Flame className="h-5 w-5 text-status-skipped" />
+        <Flame className="h-5 w-5 text-status-skipped fill-current" />
         Streak Tracking
       </h3>
 
       {/* Main Streak Stats */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="rounded-lg bg-gradient-to-br from-status-skipped-bg to-status-skipped/10 p-4 text-center">
-          <div className="text-3xl font-bold text-status-skipped mb-1">
-            {streakData.currentStreak} {getStreakEmoji(streakData.currentStreak)}
+          <div className="text-3xl font-bold text-status-skipped mb-1 flex items-center justify-center gap-2">
+            {streakData.currentStreak} <Flame className="h-8 w-8 fill-current" />
           </div>
           <div className="text-sm text-muted-foreground">Current Streak</div>
         </div>
         <div className="rounded-lg bg-gradient-to-br from-category-digital-twin/10 to-category-digital-twin/5 p-4 text-center">
-          <div className="text-3xl font-bold text-category-digital-twin mb-1">
-            {streakData.longestStreak} <Award className="inline h-6 w-6" />
+          <div className="text-3xl font-bold text-category-digital-twin mb-1 flex items-center justify-center gap-2">
+            {streakData.longestStreak} <Award className="h-8 w-8" />
           </div>
           <div className="text-sm text-muted-foreground">Longest Streak</div>
         </div>
@@ -217,8 +209,8 @@ export const StreakDisplay: React.FC<StreakDisplayProps> = ({ dateRange }) => {
                 <span className="text-muted-foreground">
                   {format(parseISO(streak.start), 'MMM d')} - {format(parseISO(streak.end), 'MMM d')}
                 </span>
-                <span className="font-medium text-foreground">
-                  {streak.length} days {getStreakEmoji(streak.length)}
+                <span className="font-medium text-foreground flex items-center gap-1">
+                  {streak.length} days <Flame className="h-3 w-3 fill-current text-status-skipped" />
                 </span>
               </div>
             ))}

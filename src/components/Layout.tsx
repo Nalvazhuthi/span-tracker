@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { CalendarDays, ListTodo, BarChart3, Settings, Sparkles, ClipboardCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { UserMenu } from './UserMenu';
+import { ThemeToggle } from './ThemeToggle';
 
 const navItems = [
   { path: '/', label: 'Today', icon: CalendarDays },
@@ -52,13 +53,15 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Link>
               );
             })}
-            <div className="ml-2">
+            <div className="ml-2 flex items-center gap-2">
+              <ThemeToggle />
               <UserMenu />
             </div>
           </nav>
 
           {/* Mobile User Menu */}
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
             <UserMenu />
           </div>
         </div>
