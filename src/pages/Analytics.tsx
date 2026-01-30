@@ -111,7 +111,7 @@ const Analytics: React.FC = () => {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="mx-auto space-y-8">
         {/* Sticky Header with Controls */}
         <div className="sticky top-0 z-20 bg-background/80 backdrop-blur-md pb-4 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

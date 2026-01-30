@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -65,19 +65,31 @@
     --contribution-level-4: 152 75% 30%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(220 70% 50%), hsl(250 70% 55%));
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(220 70% 50%),
+      hsl(250 70% 55%)
+    );
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 20% 98%));
-    --gradient-accent: linear-gradient(135deg, hsl(220 70% 95%), hsl(250 70% 95%));
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(220 70% 95%),
+      hsl(250 70% 95%)
+    );
 
     /* Shadows */
     --shadow-sm: 0 1px 2px 0 hsl(220 25% 10% / 0.05);
-    --shadow-md: 0 4px 6px -1px hsl(220 25% 10% / 0.07), 0 2px 4px -2px hsl(220 25% 10% / 0.05);
-    --shadow-lg: 0 10px 15px -3px hsl(220 25% 10% / 0.08), 0 4px 6px -4px hsl(220 25% 10% / 0.05);
+    --shadow-md:
+      0 4px 6px -1px hsl(220 25% 10% / 0.07),
+      0 2px 4px -2px hsl(220 25% 10% / 0.05);
+    --shadow-lg:
+      0 10px 15px -3px hsl(220 25% 10% / 0.08),
+      0 4px 6px -4px hsl(220 25% 10% / 0.05);
     --shadow-glow: 0 0 20px hsl(220 70% 50% / 0.15);
 
     /* Font */
-    --font-heading: 'Space Grotesk', system-ui, sans-serif;
-    --font-body: 'Space Grotesk', system-ui, sans-serif;
+    --font-heading: "Space Grotesk", system-ui, sans-serif;
+    --font-body: "Space Grotesk", system-ui, sans-serif;
   }
 
   /* Theme: Forest Light */
@@ -117,14 +129,22 @@
     --contribution-level-4: 142 75% 35%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(142 71% 45%), hsl(160 70% 40%));
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(142 71% 45%),
+      hsl(160 70% 40%)
+    );
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(140 20% 98%));
-    --gradient-accent: linear-gradient(135deg, hsl(142 70% 95%), hsl(160 70% 95%));
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(142 70% 95%),
+      hsl(160 70% 95%)
+    );
 
     --shadow-glow: 0 0 20px hsl(142 71% 45% / 0.15);
 
-    --font-heading: 'Outfit', system-ui, sans-serif;
-    --font-body: 'Inter', system-ui, sans-serif;
+    --font-heading: "Outfit", system-ui, sans-serif;
+    --font-body: "Inter", system-ui, sans-serif;
   }
 
   /* Theme: Ocean Dark (default dark) */
@@ -174,14 +194,28 @@
     --contribution-level-4: 152 65% 50%;
 
     /* Gradients - dark mode */
-    --gradient-primary: linear-gradient(135deg, hsl(220 70% 55%), hsl(250 70% 60%));
-    --gradient-card: linear-gradient(180deg, hsl(224 25% 12%), hsl(224 25% 10%));
-    --gradient-accent: linear-gradient(135deg, hsl(224 25% 18%), hsl(250 25% 18%));
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(220 70% 55%),
+      hsl(250 70% 60%)
+    );
+    --gradient-card: linear-gradient(
+      180deg,
+      hsl(224 25% 12%),
+      hsl(224 25% 10%)
+    );
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(224 25% 18%),
+      hsl(250 25% 18%)
+    );
 
     /* Shadows - dark mode */
     --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.2);
-    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.25), 0 2px 4px -2px hsl(0 0% 0% / 0.15);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.15);
+    --shadow-md:
+      0 4px 6px -1px hsl(0 0% 0% / 0.25), 0 2px 4px -2px hsl(0 0% 0% / 0.15);
+    --shadow-lg:
+      0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.15);
     --shadow-glow: 0 0 25px hsl(220 70% 55% / 0.2);
   }
 
@@ -232,14 +266,26 @@
     --contribution-level-4: 270 65% 65%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(270 70% 60%), hsl(300 70% 55%));
-    --gradient-card: linear-gradient(180deg, hsl(270 25% 12%), hsl(270 25% 10%));
-    --gradient-accent: linear-gradient(135deg, hsl(270 25% 18%), hsl(300 25% 18%));
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(270 70% 60%),
+      hsl(300 70% 55%)
+    );
+    --gradient-card: linear-gradient(
+      180deg,
+      hsl(270 25% 12%),
+      hsl(270 25% 10%)
+    );
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(270 25% 18%),
+      hsl(300 25% 18%)
+    );
 
     --shadow-glow: 0 0 25px hsl(270 70% 60% / 0.25);
 
-    --font-heading: 'Outfit', system-ui, sans-serif;
-    --font-body: 'Inter', system-ui, sans-serif;
+    --font-heading: "Outfit", system-ui, sans-serif;
+    --font-body: "Inter", system-ui, sans-serif;
   }
 }
 
@@ -253,13 +299,19 @@
     font-family: var(--font-body);
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-heading);
     @apply font-semibold tracking-tight;
   }
 
-  code, pre {
-    font-family: 'JetBrains Mono', monospace;
+  code,
+  pre {
+    font-family: "JetBrains Mono", monospace;
   }
 }
 
@@ -294,27 +346,31 @@
   }
 
   @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
   }
 
   @keyframes slideUp {
-    from { 
+    from {
       opacity: 0;
       transform: translateY(10px);
     }
-    to { 
+    to {
       opacity: 1;
       transform: translateY(0);
     }
   }
 
   @keyframes scaleIn {
-    from { 
+    from {
       opacity: 0;
       transform: scale(0.95);
     }
-    to { 
+    to {
       opacity: 1;
       transform: scale(1);
     }
