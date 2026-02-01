@@ -1,25 +1,11 @@
-import React from "react";
-import { Task, CATEGORY_LABELS, TaskCategory } from "@/types/task";
-import { useTasks } from "@/context/TaskContext";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import {
-  formatDisplayDate,
-  formatShortDate,
-  getTotalDays,
-  getToday,
-  getDaysInRange,
-} from "@/utils/dateUtils";
-import { getActiveTaskDays } from "@/utils/taskDayUtils";
-import {
-  Edit2,
-  Trash2,
-  Calendar,
-  Target,
-  Clock,
-  ArrowUpRight,
-} from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import React from 'react';
+import { Task, CATEGORY_LABELS, TaskCategory } from '@/types/task';
+import { useTasks } from '@/context/TaskContext';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { formatDisplayDate, formatShortDate, getTotalDays, getToday } from '@/utils/dateUtils';
+import { Edit2, Trash2, Calendar, Target, Clock, ArrowUpRight } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 
 interface TaskCardProps {
   task: Task;
@@ -50,21 +36,11 @@ const priorityBadge: Record<string, { bg: string; text: string }> = {
   },
 };
 
-export const TaskCard: React.FC<TaskCardProps> = ({
-  task,
-  onEdit,
-  onDelete,
-  compact = false,
-}) => {
-  const today = getToday();
-  const { getTaskProgress } = useTasks();
-  const { completed, total, percentage } = getTaskProgress(task.id);
+export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, compact = false }) => {
 
-  const progress = {
-    completed,
-    total,
-    percentage,
-  };
+  const { getTaskProgress } = useTasks();
+  const progress = getTaskProgress(task.id);
+  const today = getToday();
 
   const totalDays = getTotalDays(task.startDate, task.endDate);
   const categoryLabel =
