@@ -36,7 +36,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg bg-primary">
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg sm:text-xl font-bold tracking-tight">
+            <span className="text-xl font-bold tracking-tight text-foreground/90">
               TaskFlow
             </span>
           </Link>

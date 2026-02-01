@@ -93,7 +93,14 @@ const Index: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 text-muted-foreground mb-1">
               <Rocket className="h-4 w-4 text-orange-400" />
-              <span className="text-sm font-medium">Good Afternoon</span>
+              <span className="text-sm font-medium">
+                {(() => {
+                  const hour = new Date().getHours();
+                  if (hour < 12) return 'Good Morning';
+                  if (hour < 18) return 'Good Afternoon';
+                  return 'Good Evening';
+                })()}
+              </span>
             </div>
             <h1 className="text-4xl font-bold tracking-tight text-white">
               Today's Focus
@@ -105,7 +112,7 @@ const Index: React.FC = () => {
 
           <Button
             onClick={() => setFormOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-900/20"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
           >
             <Plus className="h-4 w-4 mr-2" />
             New Task
@@ -113,9 +120,9 @@ const Index: React.FC = () => {
         </div>
 
         {/* Hero Progress Card */}
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e1e2e] to-[#14141f] border border-white/5 p-8 shadow-2xl">
-          <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-            <div className="h-64 w-64 rounded-full bg-blue-500 blur-3xl" />
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card to-background border border-primary/10 p-8 shadow-2xl">
+          <div className="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
+            <div className="h-64 w-64 rounded-full bg-primary blur-3xl" />
           </div>
 
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
@@ -138,7 +145,7 @@ const Index: React.FC = () => {
                   <Rocket className="h-3.5 w-3.5" />
                   <span>{stats.completed} Completed</span>
                 </div>
-                <div className="flex items-center gap-2 rounded-full bg-orange-500/10 border border-orange-500/20 px-3 py-1.5 text-orange-400 text-sm font-medium">
+                <div className="flex items-center gap-2 rounded-full bg-primary/10 border border-primary/20 px-3 py-1.5 text-primary text-sm font-medium">
                   <CalendarIcon className="h-3.5 w-3.5" />
                   <span>{stats.total} Total</span>
                 </div>
@@ -152,7 +159,7 @@ const Index: React.FC = () => {
                 viewBox="0 0 100 100"
               >
                 <circle
-                  className="text-slate-800"
+                  className="text-muted/20"
                   strokeWidth="8"
                   stroke="currentColor"
                   fill="transparent"
@@ -161,7 +168,7 @@ const Index: React.FC = () => {
                   cy="50"
                 />
                 <circle
-                  className="text-blue-500 transition-all duration-1000 ease-out"
+                  className="text-primary transition-all duration-1000 ease-out"
                   strokeWidth="8"
                   strokeDasharray={264}
                   strokeDashoffset={264 - (264 * stats.percentage) / 100}
@@ -173,11 +180,11 @@ const Index: React.FC = () => {
                   cy="50"
                 />
               </svg>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                <span className="text-2xl font-bold text-white block">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center">
+                <span className="text-3xl font-bold text-foreground leading-none">
                   {stats.percentage}%
                 </span>
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest mt-1">
                   Daily Goal
                 </span>
               </div>
@@ -225,8 +232,8 @@ const Index: React.FC = () => {
                   className={cn(
                     "flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-200 min-w-[3rem]",
                     isSelected
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30 scale-105"
-                      : "bg-[#15151c] border border-white/5 text-slate-400 hover:bg-[#1e1e2e]",
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30 scale-105"
+                      : "bg-card border border-border text-muted-foreground hover:bg-muted",
                   )}
                 >
                   <span className="text-[10px] uppercase font-bold tracking-wider opacity-80">
@@ -299,7 +306,7 @@ const Index: React.FC = () => {
               return (
                 <div
                   key={offset}
-                  className="bg-[#15151c] border border-white/5 p-4 rounded-xl"
+                  className="bg-card border border-border p-4 rounded-xl"
                 >
                   <div className="text-sm font-medium text-slate-400 mb-2">
                     {label}

@@ -1,95 +1,91 @@
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  /* Theme: Ocean Light (default) */
+  /* Theme: Cool Minimal Light */
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 25% 10%;
+    --background: 210 20% 98%;
+    --foreground: 220 20% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card-foreground: 220 20% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover-foreground: 220 20% 15%;
 
-    --primary: 220 70% 50%;
+    --primary: 200 80% 45%; /* Aesthetic Ocean Blue */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 92%;
-    --secondary-foreground: 220 25% 20%;
+    --secondary: 210 10% 95%;
+    --secondary-foreground: 220 20% 20%;
 
-    --muted: 220 15% 94%;
+    --muted: 210 10% 95%;
     --muted-foreground: 220 10% 45%;
 
-    --accent: 220 70% 95%;
-    --accent-foreground: 220 70% 40%;
+    --accent: 190 70% 95%;
+    --accent-foreground: 190 80% 35%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 15% 88%;
-    --input: 220 15% 88%;
-    --ring: 220 70% 50%;
+    --border: 210 15% 90%;
+    --input: 210 15% 90%;
+    --ring: 200 80% 45%;
 
-    --radius: 0.75rem;
+    --radius: 1rem; /* More rounded, softer */
 
-    /* Task status colors */
-    --status-done: 152 69% 40%;
-    --status-done-bg: 152 69% 95%;
-    --status-skipped: 38 92% 50%;
-    --status-skipped-bg: 38 92% 95%;
-    --status-partial: 217 91% 60%;
-    --status-partial-bg: 217 91% 95%;
-    --status-pending: 220 10% 50%;
-    --status-pending-bg: 220 10% 95%;
+    /* Task status colors - Soft Pastels */
+    --status-done: 160 60% 45%;
+    --status-done-bg: 160 50% 95%;
+    --status-skipped: 340 70% 60%;
+    --status-skipped-bg: 340 50% 96%;
+    --status-partial: 35 80% 55%;
+    --status-partial-bg: 35 60% 95%;
+    --status-pending: 210 10% 55%;
+    --status-pending-bg: 210 10% 95%;
 
-    /* Category colors */
-    --category-digital-twin: 262 83% 58%;
-    --category-hacking: 142 71% 45%;
-    --category-math: 199 89% 48%;
-    --category-custom: 340 82% 52%;
+    /* Category colors - Muted */
+    --category-digital-twin: 260 60% 65%;
+    --category-hacking: 150 50% 50%;
+    --category-math: 210 70% 60%;
+    --category-custom: 320 60% 65%;
 
     /* Priority colors */
-    --priority-high: 0 72% 51%;
-    --priority-medium: 38 92% 50%;
-    --priority-low: 220 10% 50%;
+    --priority-high: 0 70% 65%;
+    --priority-medium: 35 80% 55%;
+    --priority-low: 210 10% 55%;
 
-    /* GitHub-style contribution colors */
-    --contribution-level-1: 152 60% 80%;
-    --contribution-level-2: 152 65% 60%;
-    --contribution-level-3: 152 70% 45%;
-    --contribution-level-4: 152 75% 30%;
+    /* GitHub-style contribution colors - Blue/Teal Theme */
+    --contribution-level-1: 190 60% 90%;
+    --contribution-level-2: 190 60% 70%;
+    --contribution-level-3: 190 60% 50%;
+    --contribution-level-4: 190 70% 35%;
 
     /* Gradients */
     --gradient-primary: linear-gradient(
       135deg,
-      hsl(220 70% 50%),
-      hsl(250 70% 55%)
+      hsl(200 80% 45%),
+      hsl(220 70% 50%)
     );
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 20% 98%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 20% 98%));
     --gradient-accent: linear-gradient(
       135deg,
-      hsl(220 70% 95%),
-      hsl(250 70% 95%)
+      hsl(190 70% 95%),
+      hsl(210 70% 95%)
     );
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(220 25% 10% / 0.05);
-    --shadow-md:
-      0 4px 6px -1px hsl(220 25% 10% / 0.07),
-      0 2px 4px -2px hsl(220 25% 10% / 0.05);
-    --shadow-lg:
-      0 10px 15px -3px hsl(220 25% 10% / 0.08),
-      0 4px 6px -4px hsl(220 25% 10% / 0.05);
-    --shadow-glow: 0 0 20px hsl(220 70% 50% / 0.15);
+    /* Shadows - Soft & Diffused */
+    --shadow-sm: 0 2px 4px 0 hsl(220 15% 80% / 0.2);
+    --shadow-md: 0 8px 16px -4px hsl(220 15% 80% / 0.2);
+    --shadow-lg: 0 16px 32px -8px hsl(220 15% 80% / 0.25);
+    --shadow-glow: 0 0 20px hsl(200 80% 45% / 0.1);
 
-    /* Font */
-    --font-heading: "Space Grotesk", system-ui, sans-serif;
-    --font-body: "Space Grotesk", system-ui, sans-serif;
+    /* Font - Aesthetic & Clean */
+    --font-heading: "Outfit", system-ui, sans-serif;
+    --font-body: "Inter", system-ui, sans-serif;
   }
 
   /* Theme: Forest Light */
@@ -147,76 +143,79 @@
     --font-body: "Inter", system-ui, sans-serif;
   }
 
-  /* Theme: Ocean Dark (default dark) */
+  /* Theme: Aesthetic Deep Dark */
   .dark {
-    --background: 224 25% 8%;
-    --foreground: 220 15% 95%;
+    --background: 220 25% 10%;
+    --foreground: 220 10% 95%;
 
-    --card: 224 25% 11%;
-    --card-foreground: 220 15% 95%;
+    --card: 220 25% 13%;
+    --card-foreground: 220 10% 95%;
 
-    --popover: 224 25% 11%;
-    --popover-foreground: 220 15% 95%;
+    --popover: 220 25% 12%;
+    --popover-foreground: 220 10% 95%;
 
-    --primary: 220 70% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 200 80% 60%; /* Cool Blue */
+    --primary-foreground: 220 25% 10%;
 
-    --secondary: 224 20% 16%;
-    --secondary-foreground: 220 15% 90%;
+    --secondary: 220 25% 20%;
+    --secondary-foreground: 220 10% 90%;
 
-    --muted: 224 20% 14%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 220 25% 18%;
+    --muted-foreground: 220 10% 60%;
 
-    --accent: 224 25% 18%;
-    --accent-foreground: 220 70% 70%;
+    --accent: 190 70% 25%;
+    --accent-foreground: 190 80% 85%;
 
-    --destructive: 0 62% 45%;
+    --destructive: 0 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 224 20% 18%;
-    --input: 224 20% 18%;
-    --ring: 220 70% 55%;
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 200 80% 60%;
 
-    /* Task status colors - dark mode */
-    --status-done: 152 69% 50%;
-    --status-done-bg: 152 50% 15%;
-    --status-skipped: 38 92% 55%;
-    --status-skipped-bg: 38 70% 15%;
-    --status-partial: 217 91% 65%;
-    --status-partial-bg: 217 70% 15%;
-    --status-pending: 220 10% 55%;
-    --status-pending-bg: 220 10% 15%;
+    /* Task status colors - Dark Muted */
+    --status-done: 160 50% 60%;
+    --status-done-bg: 160 30% 20%;
+    --status-skipped: 340 60% 65%;
+    --status-skipped-bg: 340 30% 20%;
+    --status-partial: 35 70% 65%;
+    --status-partial-bg: 35 30% 20%;
+    --status-pending: 220 10% 60%;
+    --status-pending-bg: 220 20% 20%;
 
-    /* Contribution colors - dark mode */
-    --contribution-level-1: 152 50% 20%;
-    --contribution-level-2: 152 55% 30%;
-    --contribution-level-3: 152 60% 40%;
-    --contribution-level-4: 152 65% 50%;
+    /* Contribution colors - Cool Blue */
+    --contribution-level-1: 200 40% 25%;
+    --contribution-level-2: 200 50% 40%;
+    --contribution-level-3: 200 60% 55%;
+    --contribution-level-4: 200 70% 70%;
 
-    /* Gradients - dark mode */
+    /* Gradients - Subtle */
     --gradient-primary: linear-gradient(
       135deg,
-      hsl(220 70% 55%),
-      hsl(250 70% 60%)
+      hsl(200 80% 55%),
+      hsl(220 60% 65%)
     );
     --gradient-card: linear-gradient(
       180deg,
-      hsl(224 25% 12%),
-      hsl(224 25% 10%)
+      hsl(220 25% 15%),
+      hsl(220 25% 13%)
     );
     --gradient-accent: linear-gradient(
       135deg,
-      hsl(224 25% 18%),
-      hsl(250 25% 18%)
+      hsl(220 25% 15%),
+      hsl(230 25% 18%)
     );
 
-    /* Shadows - dark mode */
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.2);
+    /* Shadows - Clean */
+    --shadow-sm: 0 2px 4px 0 hsl(0 0% 0% / 0.2);
     --shadow-md:
-      0 4px 6px -1px hsl(0 0% 0% / 0.25), 0 2px 4px -2px hsl(0 0% 0% / 0.15);
+      0 8px 16px -4px hsl(0 0% 0% / 0.3), 0 4px 8px -2px hsl(0 0% 0% / 0.2);
     --shadow-lg:
-      0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.15);
-    --shadow-glow: 0 0 25px hsl(220 70% 55% / 0.2);
+      0 16px 32px -8px hsl(0 0% 0% / 0.4), 0 8px 16px -4px hsl(0 0% 0% / 0.2);
+    --shadow-glow: 0 0 25px hsl(200 80% 60% / 0.1);
+
+    --font-heading: "Outfit", system-ui, sans-serif;
+    --font-body: "Inter", system-ui, sans-serif;
   }
 
   /* Theme: Midnight Purple */

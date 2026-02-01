@@ -120,9 +120,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, comp
   }
 
   return (
-    <div className="group relative rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5">
-      {/* Decorative gradient overlay */}
-      <div className="absolute inset-x-0 top-0 h-1 rounded-t-2xl bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+    <div className="group relative rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
+
 
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-4">
