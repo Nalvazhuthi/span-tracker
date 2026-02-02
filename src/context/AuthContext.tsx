@@ -10,6 +10,8 @@ interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  isPro: boolean;
+  upgradeToPro: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -18,6 +20,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPro, setIsPro] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -25,6 +28,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        // Check local storage for pro status persistence between reloads for demo
+        const storedPro = localStorage.getItem('isPro') === 'true';
+        setIsPro(storedPro);
         setLoading(false);
       }
     );
@@ -33,6 +39,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      const storedPro = localStorage.getItem('isPro') === 'true';
+      setIsPro(storedPro);
       setLoading(false);
     });
 
@@ -77,6 +85,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem('isPro');
+    setIsPro(false);
+  }, []);
+
+  const upgradeToPro = useCallback(async () => {
+    // Mock upgrade
+    setIsPro(true);
+    localStorage.setItem('isPro', 'true');
   }, []);
 
   return (
@@ -88,6 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signIn,
       signInWithGoogle,
       signOut,
+      isPro,
+      upgradeToPro
     }}>
       {children}
     </AuthContext.Provider>

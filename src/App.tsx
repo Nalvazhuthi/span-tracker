@@ -17,6 +17,7 @@ const Index = lazy(() => import("./pages/Index"));
 const Tasks = lazy(() => import("./pages/Tasks"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const WeeklyReview = lazy(() => import("./pages/WeeklyReview"));
+const Payments = lazy(() => import("./pages/Payments"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -86,6 +87,14 @@ const App = () => (
                         element={
                           <ProtectedRoute>
                             <WeeklyReview />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/payments"
+                        element={
+                          <ProtectedRoute>
+                            <Payments />
                           </ProtectedRoute>
                         }
                       />

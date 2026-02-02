@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
-import { BarChart3, Plus, BarChart2, LineChart, AreaChart, CalendarRange, Layers } from 'lucide-react';
+import { BarChart3, Plus, BarChart2, LineChart, AreaChart, CalendarRange, Layers, Sparkles } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import { subDays, format } from 'date-fns';
 import { getToday, formatDate } from '@/utils/dateUtils';
 
@@ -28,6 +29,7 @@ const timeRangeOptions: { value: TimeRange; label: string }[] = [
 
 const Analytics: React.FC = () => {
   const { tasks, isLoading } = useTasks();
+  const { isPro } = useAuth();
   const [timeRange, setTimeRange] = useState<TimeRange>('1w');
   const [chartType, setChartType] = useState<ChartType>('area');
   const today = getToday();
@@ -159,25 +161,51 @@ const Analytics: React.FC = () => {
         {/* Stats Cards */}
         <StatsCards dateRange={dateRange} />
 
-        {/* Charts Grid */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Daily Trend Chart */}
-          <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-card/50 p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-               <h3 className="text-lg font-semibold flex items-center gap-2">
-                 <Layers className="h-5 w-5 text-primary" />
-                 Daily Trend
-               </h3>
+        {/* Pro Features Lock */}
+        {!isPro ? (
+           <div className="relative rounded-xl border border-dashed border-primary/30 bg-muted/30 p-8 text-center mt-8 overflow-hidden">
+             <div className="absolute inset-0 backdrop-blur-[2px] z-10" />
+             <div className="relative z-20 flex flex-col items-center justify-center space-y-4">
+               <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                 <Sparkles className="h-6 w-6 text-primary" />
+               </div>
+               <h3 className="text-xl font-bold">Unlock Advanced Analytics</h3>
+               <p className="text-muted-foreground max-w-md mx-auto">
+                 Get deep insights into your productivity with daily trends, streak tracking, and consistency heatmaps with Span Tracker Pro.
+               </p>
+               <Button asChild className="mt-4">
+                 <Link to="/payments">Upgrade to Pro</Link>
+               </Button>
+             </div>
+             {/* Blurred Content Preview */}
+             <div className="opacity-20 pointer-events-none filter blur-sm mt-8 grid gap-6 lg:grid-cols-2">
+                <div className="h-64 bg-card rounded-xl border" />
+                <div className="h-64 bg-card rounded-xl border" />
+             </div>
+           </div>
+        ) : (
+          <>
+            {/* Charts Grid */}
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Daily Trend Chart */}
+              <div className="rounded-2xl border border-border bg-gradient-to-br from-card to-card/50 p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-6">
+                   <h3 className="text-lg font-semibold flex items-center gap-2">
+                     <Layers className="h-5 w-5 text-primary" />
+                     Daily Trend
+                   </h3>
+                </div>
+                <DailyTrendChart chartType={chartType} dateRange={dateRange} />
+              </div>
+
+              {/* Streak Display */}
+              <StreakDisplay dateRange={dateRange} />
             </div>
-            <DailyTrendChart chartType={chartType} dateRange={dateRange} />
-          </div>
 
-          {/* Streak Display */}
-          <StreakDisplay dateRange={dateRange} />
-        </div>
-
-        {/* Calendar */}
-        <ConsistencyCalendar />
+            {/* Calendar */}
+            <ConsistencyCalendar />
+          </>
+        )}
       </div>
     </Layout>
   );

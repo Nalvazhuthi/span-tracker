@@ -11,11 +11,13 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, Sparkles } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
 const WeeklyReview: React.FC = () => {
     const { tasks, dailyProgress, updateTask } = useTasks();
+    const { isPro } = useAuth();
     const navigate = useNavigate();
     const today = getToday();
     const weekStart = format(subDays(parseISO(today), 6), 'yyyy-MM-dd');
@@ -62,6 +64,39 @@ const WeeklyReview: React.FC = () => {
         { name: 'Planned', value: stats.planned, fill: '#94a3b8' },
         { name: 'Completed', value: stats.completed, fill: '#22c55e' },
     ];
+
+    if (!isPro) {
+        return (
+            <Layout>
+                <div className="space-y-6 animate-fade-in relative">
+                    <div className="flex items-center gap-4 filter blur-sm pointer-events-none select-none">
+                        <Button variant="ghost" size="icon">
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Weekly Review</h1>
+                            <p className="text-muted-foreground">Review your performance and adjust your strategy.</p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col items-center justify-center py-20 text-center space-y-6">
+                        <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+                            <Sparkles className="h-10 w-10 text-primary" />
+                        </div>
+                        <h2 className="text-3xl font-bold">Pro Feature Locked</h2>
+                        <p className="text-lg text-muted-foreground max-w-lg">
+                            The Weekly Review system is designed to help you analyze your week, identify patterns, and optimize your productivity.
+                            <br /><br />
+                            Upgrade to Span Tracker Pro to access this feature.
+                        </p>
+                        <Button asChild size="lg" className="mt-4">
+                            <Link to="/payments">Unlock with Pro</Link>
+                        </Button>
+                    </div>
+                </div>
+            </Layout>
+        );
+    }
 
     return (
         <Layout>

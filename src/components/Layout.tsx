@@ -7,6 +7,7 @@ import {
   Settings,
   Sparkles,
   ClipboardCheck,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserMenu } from "./UserMenu";
@@ -17,6 +18,7 @@ const navItems = [
   { path: "/tasks", label: "Tasks", icon: ListTodo },
   { path: "/analytics", label: "Progress", icon: BarChart3 },
   { path: "/weekly-review", label: "Review", icon: ClipboardCheck },
+  { path: "/payments", label: "Payments", icon: CreditCard },
   { path: "/settings", label: "Settings", icon: Settings },
 ];
 
