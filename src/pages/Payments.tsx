@@ -65,12 +65,11 @@ const Payments = () => {
   >("method-selection");
   const [selectedMethod, setSelectedMethod] = useState<"upi">("upi");
 
-  // AutoPay State
+  // AutoPay State (synced across checkout and manage subscription)
   const [enableAutoPay, setEnableAutoPay] = useState(false);
 
   // Subscription Management State
   const [isManageOpen, setIsManageOpen] = useState(false);
-  const [autoPay, setAutoPay] = useState(true);
 
   // Developer VPA (User config)
   const DEVELOPER_VPA = "nalvazhuthi03-1@okhdfcbank";
@@ -85,6 +84,9 @@ const Payments = () => {
             date: "Oct 24, 2024",
             amount: "₹199",
             status: "Paid",
+            transactionId: "TXN" + Date.now().toString().slice(-8),
+            paymentMethod: "UPI - nalv@oksbi",
+            invoiceUrl: "#",
           },
         ]
       : [],
@@ -121,7 +123,8 @@ const Payments = () => {
     // Simulate API delay
     setTimeout(async () => {
       try {
-        await upgradeToPro();
+        // Pass billing cycle to upgradeToPro
+        await upgradeToPro(billingCycle);
 
         // Add mock transaction
         const newTx = {
@@ -134,6 +137,9 @@ const Payments = () => {
           }),
           amount: billingCycle === "monthly" ? "₹199" : "₹1999",
           status: "Paid",
+          transactionId: "TXN" + Date.now().toString().slice(-8),
+          paymentMethod: "UPI",
+          invoiceUrl: "#",
         };
         setTransactions([newTx, ...transactions]);
 
@@ -193,6 +199,23 @@ const Payments = () => {
   return (
     <Layout>
       <div className="space-y-8 animate-fade-in max-w-5xl mx-auto">
+        {/* Test Mode Warning */}
+        <div className="bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-200 dark:border-amber-800 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-amber-900 dark:text-amber-100">
+                Test Mode Active
+              </h3>
+              <p className="text-sm text-amber-800 dark:text-amber-200 mt-1">
+                Payments are currently in test mode with ₹1.00 amount. This is
+                for development purposes only. In production, implement proper
+                payment gateway integration with webhook verification.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="text-center space-y-4">
           <h1 className="text-4xl font-bold tracking-tight">
             Upgrade Your Productivity
@@ -365,16 +388,31 @@ const Payments = () => {
 
                           <div className="flex items-center justify-between">
                             <div className="space-y-0.5">
-                              <Label className="text-base">Autopay</Label>
+                              <Label className="text-base">AutoPay</Label>
                               <p className="text-sm text-muted-foreground">
                                 Automatically renew subscription
                               </p>
                             </div>
                             <Switch
-                              checked={autoPay}
-                              onCheckedChange={setAutoPay}
+                              checked={enableAutoPay}
+                              onCheckedChange={setEnableAutoPay}
                             />
                           </div>
+
+                          {enableAutoPay && (
+                            <div className="p-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                              <p className="text-sm text-blue-900 dark:text-blue-100">
+                                <strong>Next billing:</strong>{" "}
+                                {new Date(
+                                  Date.now() + 30 * 24 * 60 * 60 * 1000,
+                                ).toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </p>
+                            </div>
+                          )}
 
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
@@ -420,6 +458,68 @@ const Payments = () => {
           </TabsContent>
 
           <TabsContent value="billing" className="space-y-4 max-w-4xl mx-auto">
+            {/* Payment Analytics */}
+            {isPro && transactions.length > 0 && (
+              <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" /> Payment
+                    Analytics
+                  </CardTitle>
+                  <CardDescription>
+                    Your subscription insights and savings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="p-4 bg-background rounded-lg border">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Total Spent
+                      </p>
+                      <p className="text-2xl font-bold">
+                        ₹
+                        {transactions.reduce(
+                          (sum, tx) =>
+                            sum + parseInt(tx.amount.replace("₹", "")),
+                          0,
+                        )}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-background rounded-lg border">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        Subscription Days
+                      </p>
+                      <p className="text-2xl font-bold">
+                        {Math.floor(
+                          (Date.now() -
+                            new Date(
+                              transactions[transactions.length - 1].date,
+                            ).getTime()) /
+                            (1000 * 60 * 60 * 24),
+                        )}{" "}
+                        days
+                      </p>
+                    </div>
+                    <div className="p-4 bg-background rounded-lg border">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {billingCycle === "yearly"
+                          ? "Yearly Savings"
+                          : "Potential Savings"}
+                      </p>
+                      <p className="text-2xl font-bold text-green-600">
+                        {billingCycle === "yearly" ? "₹389" : "₹389/yr"}
+                      </p>
+                      {billingCycle === "monthly" && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Switch to yearly to save!
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -435,27 +535,70 @@ const Payments = () => {
                     {transactions.map((tx) => (
                       <div
                         key={tx.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                        className="flex flex-col gap-3 p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                       >
-                        <div className="flex items-center gap-4">
-                          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                            <Zap className="h-5 w-5" />
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                              <Zap className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{tx.desc}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {tx.date}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">{tx.desc}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {tx.date}
-                            </p>
+                          <div className="text-right">
+                            <p className="font-medium">{tx.amount}</p>
+                            <Badge
+                              variant="outline"
+                              className="text-green-600 border-green-200 bg-green-50 dark:bg-green-950/20"
+                            >
+                              {tx.status}
+                            </Badge>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-medium">{tx.amount}</p>
-                          <Badge
-                            variant="outline"
-                            className="text-green-600 border-green-200 bg-green-50"
+
+                        {/* Transaction Details */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t text-sm">
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                            <span className="text-muted-foreground">
+                              <strong>ID:</strong> {tx.transactionId}
+                            </span>
+                            <span className="text-muted-foreground">
+                              <strong>Method:</strong> {tx.paymentMethod}
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="gap-2 self-start sm:self-auto"
+                            onClick={() => {
+                              // Simulate invoice download
+                              toast({
+                                title: "Invoice Downloaded",
+                                description: `Invoice for ${tx.transactionId} has been downloaded.`,
+                              });
+                            }}
                           >
-                            {tx.status}
-                          </Badge>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="7 10 12 15 17 10" />
+                              <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg>
+                            Download Invoice
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -477,10 +620,10 @@ const Payments = () => {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" /> Payment Methods
+                  <Smartphone className="h-5 w-5" /> Payment Methods
                 </CardTitle>
                 <CardDescription>
-                  Manage your saved payment cards.
+                  Manage your saved UPI IDs and payment methods.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -511,14 +654,22 @@ const Payments = () => {
                         </div>
                       ))}
                       <Button variant="outline" className="gap-2 w-full mt-4">
-                        <CreditCard className="h-4 w-4" /> Add Another Card
+                        <Smartphone className="h-4 w-4" /> Add Another UPI ID
                       </Button>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <p className="text-muted-foreground">
-                        No payment methods added yet.
-                      </p>
+                      <div className="flex flex-col items-center py-8">
+                        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                          <Smartphone className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <p className="text-muted-foreground mb-2">
+                          No payment methods added yet.
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Add a UPI ID to enable quick payments
+                        </p>
+                      </div>
                       <Button variant="outline" className="gap-2 w-full mt-4">
                         <Smartphone className="h-4 w-4" /> Add Another UPI ID
                       </Button>
@@ -587,7 +738,7 @@ const Payments = () => {
                   <div className="bg-white p-4 rounded-xl border shadow-sm">
                     <QRCode
                       value={upiLink}
-                      size={180}
+                      size={220}
                       style={{
                         height: "auto",
                         maxWidth: "100%",
@@ -609,6 +760,18 @@ const Payments = () => {
                     <span>PhonePe</span>
                     <span className="mx-1">•</span>
                     <span>Paytm</span>
+                  </div>
+
+                  {/* Mobile: Open in UPI App Button */}
+                  <div className="md:hidden w-full">
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2"
+                      onClick={() => window.open(upiLink, "_blank")}
+                    >
+                      <Smartphone className="h-4 w-4" />
+                      Open in UPI App
+                    </Button>
                   </div>
 
                   <div className="flex items-center justify-between w-full border p-3 rounded-lg bg-muted/20">
