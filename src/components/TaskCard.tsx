@@ -1,11 +1,25 @@
-import React from 'react';
-import { Task, CATEGORY_LABELS, TaskCategory } from '@/types/task';
-import { useTasks } from '@/context/TaskContext';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { formatDisplayDate, formatShortDate, getTotalDays, getToday } from '@/utils/dateUtils';
-import { Edit2, Trash2, Calendar, Target, Clock, ArrowUpRight } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import React, { useState } from "react";
+import { Task, CATEGORY_LABELS, TaskCategory } from "@/types/task";
+import { useTasks } from "@/context/TaskContext";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  formatDisplayDate,
+  formatShortDate,
+  getTotalDays,
+  getToday,
+} from "@/utils/dateUtils";
+import {
+  Edit2,
+  Trash2,
+  Calendar,
+  Target,
+  Clock,
+  ArrowUpRight,
+  Copy,
+  Check,
+} from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface TaskCardProps {
   task: Task;
@@ -36,11 +50,27 @@ const priorityBadge: Record<string, { bg: string; text: string }> = {
   },
 };
 
-export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, compact = false }) => {
-
+export const TaskCard: React.FC<TaskCardProps> = ({
+  task,
+  onEdit,
+  onDelete,
+  compact = false,
+}) => {
   const { getTaskProgress } = useTasks();
   const progress = getTaskProgress(task.id);
   const today = getToday();
+  const [isCopied, setIsCopied] = useState(false);
+
+  const copyToClipboard = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    try {
+      await navigator.clipboard.writeText(task.name);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy code", err);
+    }
+  };
 
   const totalDays = getTotalDays(task.startDate, task.endDate);
   const categoryLabel =
@@ -121,8 +151,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, comp
 
   return (
     <div className="group relative rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-
-
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex flex-col gap-1.5">
@@ -182,9 +210,23 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, comp
 
       {/* Task Name */}
       <div className="mb-5">
-        <h3 className="text-lg font-bold text-foreground mb-2 line-clamp-2 leading-tight group-hover:text-primary transition-colors">
-          {task.name}
-        </h3>
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3 className="text-lg font-bold text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors">
+            {task.name}
+          </h3>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
+            onClick={copyToClipboard}
+          >
+            {isCopied ? (
+              <Check className="h-3.5 w-3.5 text-green-500" />
+            ) : (
+              <Copy className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-md">
             <Calendar className="h-3.5 w-3.5" />
